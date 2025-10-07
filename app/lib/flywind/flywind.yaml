@@ -1,0 +1,7 @@
+# FlyWind Configuration
+#
+# This file defines custom tokens that extend the default FlyWind tokens.
+# Run 'flutter pub get' or 'dart /path/to/flywind/bin/fly.dart generate' to generate custom token classes.
+
+extend:
+  # No custom tokens defined
