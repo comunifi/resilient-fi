@@ -50,8 +50,8 @@ class FlywindApp extends StatelessWidget {
           child: FlyBox(
             children: [
               ..._buildButtonExamples(context),
-              ..._buildCardExamples(),
               ..._buildAvatarExamples(),
+              ..._buildCardExamples(),
             ],
           ).col().items('start').justify('start').gap('s6').bg('white').p('s8'),
         ),
@@ -61,44 +61,156 @@ class FlywindApp extends StatelessWidget {
 
   List<Widget> _buildButtonExamples(BuildContext context) {
     return [
-      FlyButton(
-        onTap: () => _showAlert(context),
-        variant: ButtonVariant.primary,
-        size: ButtonSize.medium,
-        child: FlyText('Primary Button'),
-      ),
-      FlyButton(
-        onTap: () {},
-        variant: ButtonVariant.secondary,
-        size: ButtonSize.small,
-        child: FlyText('Secondary Button'),
-      ),
-      FlyButton(
-        onTap: () {},
-        variant: ButtonVariant.success,
-        size: ButtonSize.large,
-        child: FlyText('Success Button'),
-      ),
-      FlyButton(
-        onTap: () {},
-        variant: ButtonVariant.danger,
-        size: ButtonSize.medium,
-        isLoading: true,
-        child: FlyText('Loading Button'),
-      ),
-      FlyButton(
-        onTap: () {},
-        variant: ButtonVariant.unstyled,
-        size: ButtonSize.medium,
-        child: FlyText('Unstyled Button'),
-      ),
-      FlyButton(
-        onTap: () => _showAlert(context),
-        variant: ButtonVariant.primary,
-        size: ButtonSize.medium,
+      // Button Examples
+      FlyText('Button Examples').text('xl').weight('bold').color('gray800'),
+
+      // Variants
+      FlyCard(
+        variant: CardVariant.outlined,
+        size: CardSize.medium,
         children: [
-          FlyIcon(Icons.star).color('white'),
-          FlyText('Star Button').color('white').text('sm').weight('medium'),
+          FlyText('Variants').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyButton(
+                onTap: () => _showAlert(context),
+                variant: ButtonVariant.primary,
+                size: ButtonSize.medium,
+                child: FlyText('Primary'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.secondary,
+                size: ButtonSize.medium,
+                child: FlyText('Secondary'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.success,
+                size: ButtonSize.medium,
+                child: FlyText('Success'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.danger,
+                size: ButtonSize.medium,
+                child: FlyText('Danger'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.unstyled,
+                size: ButtonSize.medium,
+                child: FlyText('Unstyled'),
+              ),
+            ],
+          ).row().items('start').gap('s3').wrap(),
+        ],
+      ),
+
+      // Sizes
+      FlyCard(
+        variant: CardVariant.filled,
+        size: CardSize.medium,
+        children: [
+          FlyText('Sizes').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.primary,
+                size: ButtonSize.small,
+                child: FlyText('Small'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.primary,
+                size: ButtonSize.medium,
+                child: FlyText('Medium'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.primary,
+                size: ButtonSize.large,
+                child: FlyText('Large'),
+              ),
+            ],
+          ).row().items('start').gap('s3'),
+        ],
+      ),
+
+      // States
+      FlyCard(
+        variant: CardVariant.outlined,
+        size: CardSize.medium,
+        children: [
+          FlyText('States').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyButton(
+                onTap: () => _showAlert(context),
+                variant: ButtonVariant.primary,
+                size: ButtonSize.medium,
+                child: FlyText('Normal'),
+              ),
+              FlyButton(
+                onTap: null,
+                variant: ButtonVariant.primary,
+                size: ButtonSize.medium,
+                child: FlyText('Disabled'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.primary,
+                size: ButtonSize.medium,
+                isLoading: true,
+                child: FlyText('Loading'),
+              ),
+            ],
+          ).row().items('start').gap('s3'),
+        ],
+      ),
+
+      // With Icons
+      FlyCard(
+        variant: CardVariant.filled,
+        size: CardSize.medium,
+        children: [
+          FlyText('With Icons').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyButton(
+                onTap: () => _showAlert(context),
+                variant: ButtonVariant.primary,
+                size: ButtonSize.medium,
+                children: [
+                  FlyIcon(Icons.star).color('white'),
+                  FlyText(
+                    'Star Button',
+                  ).color('white').text('sm').weight('medium'),
+                ],
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.secondary,
+                size: ButtonSize.medium,
+                children: [
+                  FlyIcon(Icons.download).color('white'),
+                  FlyText(
+                    'Download',
+                  ).color('white').text('sm').weight('medium'),
+                ],
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.success,
+                size: ButtonSize.medium,
+                children: [
+                  FlyIcon(Icons.check).color('white'),
+                  FlyText('Confirm').color('white').text('sm').weight('medium'),
+                ],
+              ),
+            ],
+          ).row().items('start').gap('s3').wrap(),
         ],
       ),
     ];
@@ -106,38 +218,221 @@ class FlywindApp extends StatelessWidget {
 
   List<Widget> _buildCardExamples() {
     return [
+      // Card Examples
+      FlyText('Card Examples').text('xl').weight('bold').color('gray800'),
+
+      // Variants
+      FlyCard(
+        variant: CardVariant.outlined,
+        size: CardSize.medium,
+        children: [
+          FlyText('Variants').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.small,
+                children: [
+                  FlyText(
+                    'Outlined',
+                  ).text('base').weight('semibold').color('gray800'),
+                  FlyText('With border').text('sm').color('gray600'),
+                ],
+              ),
+              FlyCard(
+                variant: CardVariant.filled,
+                size: CardSize.small,
+                children: [
+                  FlyText(
+                    'Filled',
+                  ).text('base').weight('semibold').color('gray800'),
+                  FlyText('With background').text('sm').color('gray600'),
+                ],
+              ),
+              FlyCard(
+                variant: CardVariant.unstyled,
+                size: CardSize.small,
+                children: [
+                  FlyText(
+                    'Unstyled',
+                  ).text('base').weight('semibold').color('gray800'),
+                  FlyText('No styling').text('sm').color('gray600'),
+                ],
+              ),
+            ],
+          ).row().items('start').gap('s4').wrap(),
+        ],
+      ),
+
+      // Sizes
+      FlyCard(
+        variant: CardVariant.filled,
+        size: CardSize.medium,
+        children: [
+          FlyText('Sizes').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.small,
+                children: [
+                  FlyText(
+                    'Small',
+                  ).text('sm').weight('semibold').color('gray800'),
+                  FlyText('Compact padding').text('xs').color('gray600'),
+                ],
+              ),
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.medium,
+                children: [
+                  FlyText(
+                    'Medium',
+                  ).text('base').weight('semibold').color('gray800'),
+                  FlyText('Standard padding').text('sm').color('gray600'),
+                ],
+              ),
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.large,
+                children: [
+                  FlyText(
+                    'Large',
+                  ).text('lg').weight('semibold').color('gray800'),
+                  FlyText('Spacious padding').text('sm').color('gray600'),
+                ],
+              ),
+            ],
+          ).row().items('start').gap('s4'),
+        ],
+      ),
+
+      // Card Components
       FlyCard(
         variant: CardVariant.outlined,
         size: CardSize.medium,
         children: [
           FlyText(
-            'Outlined Card',
+            'Card Components',
           ).text('lg').weight('semibold').color('gray800'),
-          FlyText(
-            'This is an outlined card with border',
-          ).text('sm').color('gray600'),
-        ],
-      ).p('0px').m('0px'),
-      FlyCard(
-        variant: CardVariant.filled,
-        size: CardSize.medium,
-        children: [
-          FlyText('Filled Card').text('lg').weight('semibold').color('gray800'),
-          FlyText(
-            'This is a filled card with background',
-          ).text('sm').color('gray600'),
+          FlyBox(
+            children: [
+              // Header example
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.small,
+                children: [
+                  FlyCardHeader(
+                    title: 'John Doe',
+                    subtitle: 'Software Engineer',
+                    leadingWidget: FlyAvatar(
+                      size: AvatarSize.sm,
+                      shape: AvatarShape.circular,
+                      children: [FlyAvatarFallback(fallbackText: 'JD')],
+                    ),
+                  ),
+                ],
+              ),
+              // Content example
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.small,
+                children: [
+                  FlyCardContent(
+                    children: [
+                      FlyText(
+                        'Content Area',
+                      ).text('sm').weight('semibold').color('gray800'),
+                      FlyText('Main card content').text('xs').color('gray600'),
+                    ],
+                  ),
+                ],
+              ),
+              // Footer example
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.small,
+                children: [
+                  FlyCardFooter(
+                    children: [
+                      FlyText('Footer').text('xs').color('gray500'),
+                      FlyButton(
+                        onTap: () {},
+                        variant: ButtonVariant.secondary,
+                        size: ButtonSize.small,
+                        child: FlyText('Action'),
+                      ),
+                    ],
+                  ).row().justify('between'),
+                ],
+              ),
+            ],
+          ).col().items('start').gap('s4'),
         ],
       ),
+
+      // Complex Composition Example
       FlyCard(
-        variant: CardVariant.unstyled,
+        variant: CardVariant.outlined,
         size: CardSize.medium,
         children: [
           FlyText(
-            'Unstyled Card',
+            'Complex Composition',
           ).text('lg').weight('semibold').color('gray800'),
-          FlyText(
-            'This is an unstyled card with no background or border',
-          ).text('sm').color('gray600'),
+          FlyBox(
+            children: [
+              // Full-featured card
+              FlyCard(
+                variant: CardVariant.outlined,
+                size: CardSize.large,
+                children: [
+                  FlyCardImage(
+                    imageUrl:
+                        'https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=400&h=200&fit=crop',
+                    aspectRatio: 2.0,
+                    overlay: FlyBox(
+                      children: [
+                        FlyText(
+                          'Typography',
+                        ).text('xl').weight('bold').color('white'),
+                        FlyText(
+                          'The art of arranging type',
+                        ).text('sm').color('white'),
+                      ],
+                    ).col().items('start').justify('end').p('s4'),
+                  ),
+                  FlyCardHeader(
+                    title: 'Design Principles',
+                    subtitle: 'Typography Guide',
+                    trailing: FlyButton(
+                      onTap: () {},
+                      variant: ButtonVariant.unstyled,
+                      size: ButtonSize.small,
+                      child: FlyIcon(Icons.more_vert).color('gray500'),
+                    ),
+                  ),
+                  FlyCardContent(
+                    children: [
+                      FlyText(
+                        'Typography is the art and technique of arranging type to make written language legible, readable and appealing when displayed.',
+                      ).text('sm').color('gray600'),
+                    ],
+                  ).p('s2'),
+                  FlyCardFooter(
+                    children: [
+                      FlyText('2 min read').text('xs').color('gray500'),
+                      FlyButton(
+                        onTap: () {},
+                        variant: ButtonVariant.secondary,
+                        size: ButtonSize.small,
+                        child: FlyText('Read More'),
+                      ),
+                    ],
+                  ).p('s2').row().justify('between'),
+                ],
+              ).p(0),
+            ],
+          ).col().items('start').gap('s4'),
         ],
       ),
     ];
