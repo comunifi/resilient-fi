@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import 'image.dart';
 import 'spinner.dart';
 
 enum AvatarSize { xs, sm, md, lg, xl }
@@ -210,36 +209,30 @@ class FlyAvatarImage extends FlyBox {
       return const SizedBox.shrink();
     }
 
-    final imageProvider = _getImageProvider();
-    if (imageProvider == null) {
-      return child ?? const SizedBox.shrink();
-    }
-
     final avatarSize = _getAvatarSize(avatarContext.size);
+    final borderRadius = _getBorderRadius(avatarContext.shape);
 
     return FlyImage(
       key: key,
-      child: child,
-      children: children,
-      alignment: alignment,
-      padding: padding,
-      margin: margin,
-      decoration: decoration,
-      foregroundDecoration: foregroundDecoration,
-      width: width ?? avatarSize,
-      height: height ?? avatarSize,
-      constraints: constraints,
-      transform: transform,
-      transformAlignment: transformAlignment,
-      clipBehavior: clipBehavior,
-      flyStyle: flyStyle,
       imageUrl: imageUrl,
       assetPath: assetPath,
       onLoadingStateChange: onLoadingStateChange,
       fit: BoxFit.cover,
-      borderRadius: _getBorderRadius(avatarContext.shape),
-      loadingIcon: Icons.image,
-      loadingDurationMs: 1000,
+      width: width ?? avatarSize,
+      height: height ?? avatarSize,
+      alignment: alignment,
+      flyStyle: flyStyle.copyWith(
+        rounded: borderRadius == BorderRadius.zero
+            ? null
+            : borderRadius == BorderRadius.circular(999)
+            ? '999px'
+            : 'md',
+      ),
+      loadingWidget: FlySpinner(
+        FlyIcon(Icons.image),
+        durationMs: 1000,
+      ).color('gray500'),
+      errorWidget: child ?? const SizedBox.shrink(),
     );
   }
 
@@ -266,15 +259,6 @@ class FlyAvatarImage extends FlyBox {
       onLoadingStateChange: onLoadingStateChange,
     );
   };
-
-  ImageProvider? _getImageProvider() {
-    if (imageUrl != null) {
-      return NetworkImage(imageUrl!);
-    } else if (assetPath != null) {
-      return AssetImage(assetPath!);
-    }
-    return null;
-  }
 
   double _getAvatarSize(AvatarSize size) {
     switch (size) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import 'image.dart';
+import 'spinner.dart';
 
 enum CardVariant { outlined, filled, unstyled }
 
@@ -174,30 +174,31 @@ class FlyCardImage extends FlyBox {
 
     final borderRadius = _getImageBorderRadius(cardContext.variant);
 
-    return FlyImage(
+    Widget imageWidget = FlyImage(
       key: key,
-      child: overlay != null
-          ? Stack(children: [if (child != null) child!, overlay!])
-          : child,
-      children: children,
-      alignment: alignment,
-      padding: padding,
-      margin: margin,
-      decoration: decoration,
-      foregroundDecoration: foregroundDecoration,
-      width: width,
-      height: height,
-      constraints: constraints,
-      transform: transform,
-      transformAlignment: transformAlignment,
-      clipBehavior: clipBehavior,
-      flyStyle: flyStyle,
       imageUrl: imageUrl,
       assetPath: assetPath,
       onLoadingStateChange: onLoadingStateChange,
       fit: fit,
-      borderRadius: borderRadius,
+      width: width,
+      height: height,
+      alignment: alignment,
+      flyStyle: flyStyle.copyWith(
+        rounded: borderRadius == BorderRadius.zero ? null : 'lg',
+      ),
+      loadingWidget: FlySpinner(
+        FlyIcon(Icons.image),
+        durationMs: 1000,
+      ).color('gray500'),
+      errorWidget: child ?? const SizedBox.shrink(),
     );
+
+    // Add overlay if provided
+    if (overlay != null) {
+      imageWidget = Stack(children: [imageWidget, overlay!]);
+    }
+
+    return imageWidget;
   }
 
   @override
