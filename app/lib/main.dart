@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
+import 'widgets/avatar.dart';
 import 'widgets/button.dart';
 import 'widgets/card.dart';
 
@@ -45,9 +46,15 @@ class FlywindApp extends StatelessWidget {
         backgroundColor: CupertinoColors.systemBlue,
       ),
       child: SafeArea(
-        child: FlyBox(
-          children: [..._buildButtonExamples(context), ..._buildCardExamples()],
-        ).col().items('center').justify('center').gap('s6').bg('white').p('s8'),
+        child: SingleChildScrollView(
+          child: FlyBox(
+            children: [
+              ..._buildButtonExamples(context),
+              ..._buildCardExamples(),
+              ..._buildAvatarExamples(),
+            ],
+          ).col().items('start').justify('start').gap('s6').bg('white').p('s8'),
+        ),
       ),
     );
   }
@@ -122,6 +129,170 @@ class FlywindApp extends StatelessWidget {
           FlyText(
             'This is an unstyled card with no background or border',
           ).text('sm').color('gray600'),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _buildAvatarExamples() {
+    return [
+      // Size examples
+      FlyText('Avatar Examples').text('xl').weight('bold').color('gray800'),
+
+      // Different sizes
+      FlyCard(
+        variant: CardVariant.outlined,
+        size: CardSize.medium,
+        children: [
+          FlyText('Sizes').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyAvatar(
+                size: AvatarSize.xs,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackText: 'XS')],
+              ),
+              FlyAvatar(
+                size: AvatarSize.sm,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackText: 'SM')],
+              ),
+              FlyAvatar(
+                size: AvatarSize.md,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackText: 'MD')],
+              ),
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackText: 'LG')],
+              ),
+              FlyAvatar(
+                size: AvatarSize.xl,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackText: 'XL')],
+              ),
+            ],
+          ).row().items('start').gap('s4'),
+        ],
+      ),
+
+      // Different shapes
+      FlyCard(
+        variant: CardVariant.filled,
+        size: CardSize.medium,
+        children: [
+          FlyText('Shapes').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackText: 'C')],
+              ),
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.rounded,
+                children: [FlyAvatarFallback(fallbackText: 'R')],
+              ),
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.square,
+                children: [FlyAvatarFallback(fallbackText: 'S')],
+              ),
+            ],
+          ).row().items('start').gap('s4'),
+        ],
+      ),
+
+      // Fallback types
+      FlyCard(
+        variant: CardVariant.outlined,
+        size: CardSize.medium,
+        children: [
+          FlyText(
+            'Fallback Types',
+          ).text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackText: 'JD')],
+              ),
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                children: [FlyAvatarFallback(fallbackIcon: Icons.person)],
+              ),
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                children: [
+                  FlyAvatarFallback(
+                    child: FlyIcon(Icons.star).color('yellow500'),
+                  ),
+                ],
+              ),
+            ],
+          ).row().items('start').gap('s4'),
+        ],
+      ),
+
+      // Loading state
+      FlyCard(
+        variant: CardVariant.filled,
+        size: CardSize.medium,
+        children: [
+          FlyText(
+            'Loading State',
+          ).text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                isLoading: true,
+              ),
+            ],
+          ).row().items('start').gap('s4'),
+        ],
+      ),
+
+      // Image examples (with fallback)
+      FlyCard(
+        variant: CardVariant.outlined,
+        size: CardSize.medium,
+        children: [
+          FlyText(
+            'Image with Fallback',
+          ).text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                children: [
+                  FlyAvatarImage(
+                    imageUrl:
+                        'https://avatars.githubusercontent.com/u/124599?v=4', // GitHub avatar
+                    child: FlyAvatarFallback(fallbackText: 'FB'),
+                  ),
+                ],
+              ),
+              FlyAvatar(
+                size: AvatarSize.lg,
+                shape: AvatarShape.circular,
+                children: [
+                  FlyAvatarImage(
+                    imageUrl:
+                        'https://invalid-url.com/image.jpg', // This will fail
+                    child: FlyAvatarFallback(fallbackText: 'FB'),
+                  ),
+                ],
+              ),
+            ],
+          ).row().items('start').gap('s4'),
         ],
       ),
     ];
