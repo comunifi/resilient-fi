@@ -8,14 +8,12 @@ enum ButtonVariant { primary, secondary, success, danger, unstyled }
 enum ButtonSize { small, medium, large }
 
 class FlyButton extends FlyGestureDetector {
-  FlyButton(
-    this.buttonText,
-    this.onPressed, {
+  FlyButton({
     super.key,
+    super.child,
     this.variant = ButtonVariant.primary,
     this.size = ButtonSize.medium,
     this.isLoading = false,
-    super.child,
     super.children,
     super.alignment,
     super.padding,
@@ -42,8 +40,6 @@ class FlyButton extends FlyGestureDetector {
     super.onLongPressCancel,
   });
 
-  final String buttonText;
-  final VoidCallback onPressed;
   final ButtonVariant variant;
   final ButtonSize size;
   final bool isLoading;
@@ -98,6 +94,10 @@ class FlyButton extends FlyGestureDetector {
       bg: variant == ButtonVariant.unstyled
           ? null
           : (incomingStyle.bg ?? bgColor),
+      layoutType: 'row',
+      justify: 'center',
+      items: 'center',
+      gap: 's2',
     );
   }
 
@@ -105,24 +105,25 @@ class FlyButton extends FlyGestureDetector {
   Widget build(BuildContext context) {
     final mergedStyle = getDefaultStyle(flyStyle);
 
-    return FlyGestureDetector(
-      key: key,
-      onTap: isLoading ? null : onPressed,
-      alignment: alignment,
-      padding: padding,
-      margin: margin,
-      decoration: decoration,
-      foregroundDecoration: foregroundDecoration,
-      width: width,
-      height: height,
-      constraints: constraints,
-      transform: transform,
-      transformAlignment: transformAlignment,
-      clipBehavior: clipBehavior,
-      flyStyle: mergedStyle,
-      child: isLoading
-          ? IntrinsicWidth(
-              child: FlyBox(
+    return IntrinsicWidth(
+      child: FlyGestureDetector(
+        key: key,
+        onTap: isLoading ? null : onTap,
+        alignment: alignment,
+        padding: padding,
+        margin: margin,
+        decoration: decoration,
+        foregroundDecoration: foregroundDecoration,
+        width: width,
+        height: height,
+        constraints: constraints,
+        transform: transform,
+        transformAlignment: transformAlignment,
+        clipBehavior: clipBehavior,
+        flyStyle: mergedStyle,
+        children: children,
+        child: isLoading
+            ? FlyBox(
                 children: [
                   FlySpinner(FlyIcon(Icons.refresh), durationMs: 1000),
                   FlyText('Loading...')
@@ -130,27 +131,19 @@ class FlyButton extends FlyGestureDetector {
                       .text('sm')
                       .weight('medium'),
                 ],
-              ).row().items('center').gap('s2'),
-            )
-          : FlyText(buttonText)
-                .color(mergedStyle.color ?? 'white')
-                .text('sm')
-                .weight('medium')
-                .p(mergedStyle.p ?? 's3'),
+              ).row().items('center').gap('s2')
+            : child,
+      ),
     );
   }
 
   @override
   FlyButton Function(FlyStyle newStyle) get copyWith => (newStyle) {
     return FlyButton(
-      buttonText,
-      onPressed,
       key: key,
       variant: variant,
       size: size,
       isLoading: isLoading,
-      child: child,
-      children: children,
       alignment: alignment,
       padding: padding,
       margin: margin,
@@ -174,6 +167,8 @@ class FlyButton extends FlyGestureDetector {
       onLongPressMoveUpdate: onLongPressMoveUpdate,
       onLongPressUp: onLongPressUp,
       onLongPressCancel: onLongPressCancel,
+      children: children,
+      child: child,
     );
   };
 }

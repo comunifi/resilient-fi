@@ -62,35 +62,44 @@ class FlywindApp extends StatelessWidget {
   List<Widget> _buildButtonExamples(BuildContext context) {
     return [
       FlyButton(
-        'Primary Button',
-        () => _showAlert(context),
+        onTap: () => _showAlert(context),
         variant: ButtonVariant.primary,
         size: ButtonSize.medium,
+        child: FlyText('Primary Button'),
       ),
       FlyButton(
-        'Secondary Button',
-        () {},
+        onTap: () {},
         variant: ButtonVariant.secondary,
         size: ButtonSize.small,
+        child: FlyText('Secondary Button'),
       ),
       FlyButton(
-        'Success Button',
-        () {},
+        onTap: () {},
         variant: ButtonVariant.success,
         size: ButtonSize.large,
+        child: FlyText('Success Button'),
       ),
       FlyButton(
-        'Loading Button',
-        () {},
+        onTap: () {},
         variant: ButtonVariant.danger,
         size: ButtonSize.medium,
         isLoading: true,
+        child: FlyText('Loading Button'),
       ),
       FlyButton(
-        'Unstyled Button',
-        () {},
+        onTap: () {},
         variant: ButtonVariant.unstyled,
         size: ButtonSize.medium,
+        child: FlyText('Unstyled Button'),
+      ),
+      FlyButton(
+        onTap: () => _showAlert(context),
+        variant: ButtonVariant.primary,
+        size: ButtonSize.medium,
+        children: [
+          FlyIcon(Icons.star).color('white'),
+          FlyText('Star Button').color('white').text('sm').weight('medium'),
+        ],
       ),
     ];
   }
@@ -108,7 +117,7 @@ class FlywindApp extends StatelessWidget {
             'This is an outlined card with border',
           ).text('sm').color('gray600'),
         ],
-      ),
+      ).p('0px').m('0px'),
       FlyCard(
         variant: CardVariant.filled,
         size: CardSize.medium,

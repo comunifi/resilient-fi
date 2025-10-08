@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
+import 'image.dart';
 import 'spinner.dart';
 
 enum AvatarSize { xs, sm, md, lg, xl }
@@ -214,61 +215,31 @@ class FlyAvatarImage extends FlyBox {
       return child ?? const SizedBox.shrink();
     }
 
-    return FlyBox(
+    final avatarSize = _getAvatarSize(avatarContext.size);
+
+    return FlyImage(
       key: key,
-      child: ClipRRect(
-        borderRadius: _getBorderRadius(avatarContext.shape),
-        child: Image(
-          image: imageProvider,
-          width: avatarContext.size == AvatarSize.xs
-              ? 24.0
-              : avatarContext.size == AvatarSize.sm
-              ? 32.0
-              : avatarContext.size == AvatarSize.md
-              ? 40.0
-              : avatarContext.size == AvatarSize.lg
-              ? 56.0
-              : 80.0,
-          height: avatarContext.size == AvatarSize.xs
-              ? 24.0
-              : avatarContext.size == AvatarSize.sm
-              ? 32.0
-              : avatarContext.size == AvatarSize.md
-              ? 40.0
-              : avatarContext.size == AvatarSize.lg
-              ? 56.0
-              : 80.0,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print('AvatarImage error: $error');
-            return child ?? const SizedBox.shrink();
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) {
-              onLoadingStateChange?.call(false);
-              return child;
-            }
-            onLoadingStateChange?.call(true);
-            return FlySpinner(
-              FlyIcon(Icons.image),
-              durationMs: 1000,
-            ).color('gray500');
-          },
-        ),
-      ),
+      child: child,
       children: children,
       alignment: alignment,
       padding: padding,
       margin: margin,
       decoration: decoration,
       foregroundDecoration: foregroundDecoration,
-      width: width,
-      height: height,
+      width: width ?? avatarSize,
+      height: height ?? avatarSize,
       constraints: constraints,
       transform: transform,
       transformAlignment: transformAlignment,
       clipBehavior: clipBehavior,
       flyStyle: flyStyle,
+      imageUrl: imageUrl,
+      assetPath: assetPath,
+      onLoadingStateChange: onLoadingStateChange,
+      fit: BoxFit.cover,
+      borderRadius: _getBorderRadius(avatarContext.shape),
+      loadingIcon: Icons.image,
+      loadingDurationMs: 1000,
     );
   }
 
@@ -303,6 +274,21 @@ class FlyAvatarImage extends FlyBox {
       return AssetImage(assetPath!);
     }
     return null;
+  }
+
+  double _getAvatarSize(AvatarSize size) {
+    switch (size) {
+      case AvatarSize.xs:
+        return 24.0;
+      case AvatarSize.sm:
+        return 32.0;
+      case AvatarSize.md:
+        return 40.0;
+      case AvatarSize.lg:
+        return 56.0;
+      case AvatarSize.xl:
+        return 80.0;
+    }
   }
 
   BorderRadius _getBorderRadius(AvatarShape shape) {
