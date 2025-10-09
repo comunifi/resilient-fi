@@ -15,11 +15,22 @@ class SimpleNewPostScreen extends StatefulWidget {
 
 class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
   final TextEditingController _postController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   String selectedCommunity = 'ComuniFi';
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus the text input when the screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
     _postController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -27,7 +38,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
   Widget build(BuildContext context) {
     return FlySheet(
       title: 'New Post',
-      initialChildSize: 0.7,
+      initialChildSize: 0.55,
       minChildSize: 0.3,
       maxChildSize: 0.95,
       showCloseButton: false,
@@ -39,27 +50,21 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
           FlyBox(
             children: [
               FlyButton(
-                    onTap: () {
-                      _showCommunitySelection();
-                    },
-                    variant: ButtonVariant.unstyled,
-                    child: FlyBox(
-                      children: [
-                        FlyText(
-                          selectedCommunity,
-                        ).text('base').weight('medium').color('gray900'),
-                        FlyIcon(
-                          Icons.keyboard_arrow_down,
-                        ).color('gray600').w('s4').h('s4'),
-                      ],
-                    ).row().items('center').gap('s1'),
-                  )
-                  .bg('white')
-                  .border(1)
-                  .borderColor('gray200')
-                  .rounded('md')
-                  .px('s3')
-                  .py('s2'),
+                onTap: () {
+                  _showCommunitySelection();
+                },
+                variant: ButtonVariant.secondary,
+                child: FlyBox(
+                  children: [
+                    FlyText(
+                      selectedCommunity,
+                    ).text('base').weight('medium').color('gray900'),
+                    FlyIcon(
+                      Icons.keyboard_arrow_down,
+                    ).color('gray600').w('s4').h('s4'),
+                  ],
+                ).row().items('center').gap('s1'),
+              ),
             ],
           ).px('s4').py('s2').mb('s4'),
 
@@ -67,6 +72,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
           FlyBox(
                 child: CupertinoTextField(
                   controller: _postController,
+                  focusNode: _focusNode,
                   maxLines: 5,
                   textAlignVertical: TextAlignVertical.top,
                   placeholder: 'What\'s on your mind?',
@@ -98,7 +104,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
         ).text('lg').weight('bold').color('gray900'),
         actions: [
           CupertinoActionSheetAction(
-            child: FlyText('ComuniFi').color('blue600'),
+            child: FlyText('ComuniFi').color('purple600'),
             onPressed: () {
               setState(() {
                 selectedCommunity = 'ComuniFi';
@@ -107,7 +113,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('TechFi').color('blue600'),
+            child: FlyText('TechFi').color('purple600'),
             onPressed: () {
               setState(() {
                 selectedCommunity = 'TechFi';
@@ -116,7 +122,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('DeFi').color('blue600'),
+            child: FlyText('DeFi').color('purple600'),
             onPressed: () {
               setState(() {
                 selectedCommunity = 'DeFi';
@@ -125,7 +131,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('TradFi').color('blue600'),
+            child: FlyText('TradFi').color('purple600'),
             onPressed: () {
               setState(() {
                 selectedCommunity = 'TradFi';

@@ -3,7 +3,14 @@ import 'package:flywind/flywind.dart';
 
 import 'spinner.dart';
 
-enum ButtonVariant { primary, secondary, success, danger, unstyled }
+enum ButtonVariant {
+  primary, // Purple primary buttons - purple500 bg, white text
+  secondary, // Gray secondary buttons - gray100 bg, gray800 text
+  success,
+  danger,
+  postAction, // For post action buttons (like/dislike/comment) - gray100 bg
+  unstyled,
+}
 
 enum ButtonSize { small, medium, large }
 
@@ -49,17 +56,17 @@ class FlyButton extends FlyGestureDetector {
 
   @override
   FlyStyle getDefaultStyle(FlyStyle incomingStyle) {
-    String bgColor = 'blue500';
+    String bgColor = 'purple500';
     String textColor = 'white';
 
     switch (variant) {
       case ButtonVariant.primary:
-        bgColor = 'blue500';
+        bgColor = 'purple500';
         textColor = 'white';
         break;
       case ButtonVariant.secondary:
-        bgColor = 'gray500';
-        textColor = 'white';
+        bgColor = 'gray100';
+        textColor = 'gray800';
         break;
       case ButtonVariant.success:
         bgColor = 'green500';
@@ -68,6 +75,10 @@ class FlyButton extends FlyGestureDetector {
       case ButtonVariant.danger:
         bgColor = 'red500';
         textColor = 'white';
+        break;
+      case ButtonVariant.postAction:
+        bgColor = 'gray100';
+        textColor = 'gray600';
         break;
       case ButtonVariant.unstyled:
         textColor = 'black';
@@ -94,11 +105,11 @@ class FlyButton extends FlyGestureDetector {
       bg: variant == ButtonVariant.unstyled
           ? null
           : (incomingStyle.bg ?? bgColor),
-      layoutType: 'row',
-      justify: 'center',
-      items: 'center',
-      gap: 's2',
-      w: 'min',
+      layoutType: incomingStyle.layoutType ?? 'row',
+      justify: incomingStyle.justify ?? 'center',
+      items: incomingStyle.items ?? 'center',
+      gap: incomingStyle.gap ?? 's2',
+      w: incomingStyle.w ?? 'min',
     );
   }
 

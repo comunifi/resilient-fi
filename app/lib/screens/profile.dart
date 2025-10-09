@@ -17,7 +17,11 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FlySheet(title: 'Profile', child: _buildProfileContent());
+    return FlySheet(
+      title: 'Profile',
+      initialChildSize: 0.65,
+      child: _buildProfileContent(),
+    );
   }
 
   Widget _buildProfileContent() {
@@ -26,26 +30,32 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
         // Profile header with avatar, name, and action buttons
         FlyBox(
           children: [
-            // Avatar
-            FlyAvatar(
-              size: AvatarSize.xl,
-              shape: AvatarShape.circular,
-              children: [
-                FlyAvatarFallback(
-                  fallbackText: 'JS',
-                  fallbackIcon: Icons.person,
-                ),
-              ],
-            ),
-            // Name and handle
+            // Avatar and name section
             FlyBox(
               children: [
-                FlyText(
-                  'John Smith',
-                ).text('xl').weight('bold').color('gray800'),
-                FlyText('@john').text('base').color('gray600'),
+                // Avatar
+                FlyAvatar(
+                  size: AvatarSize.xl,
+                  shape: AvatarShape.circular,
+                  children: [
+                    FlyAvatarFallback(
+                      fallbackText: 'JS',
+                      fallbackIcon: Icons.person,
+                    ),
+                  ],
+                ),
+                // Name and handle
+                FlyBox(
+                  children: [
+                    FlyText(
+                      'John Smith',
+                    ).text('xl').weight('bold').color('gray800'),
+                    FlyText('@john').text('base').color('gray600'),
+                  ],
+                ).col().items('start').gap('s1').flex(1),
               ],
-            ).col().items('start').gap('s1').flex(1),
+            ).row().items('start').gap('s4'),
+
             // Action buttons
             FlyBox(
               children: [
@@ -53,27 +63,30 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
                   onTap: () {
                     // Handle star action
                   },
-                  variant: ButtonVariant.unstyled,
+                  variant: ButtonVariant.secondary,
+                  size: ButtonSize.small,
                   child: FlyIcon(Icons.star_border).color('gray800'),
-                ).w('s10').h('s10').bg('gray100').rounded('md'),
+                ),
                 FlyButton(
                   onTap: () {
                     // Handle share action
                   },
-                  variant: ButtonVariant.unstyled,
+                  variant: ButtonVariant.secondary,
+                  size: ButtonSize.small,
                   child: FlyIcon(Icons.share).color('gray800'),
-                ).w('s10').h('s10').bg('gray100').rounded('md'),
+                ),
                 FlyButton(
                   onTap: () {
                     // Handle download action
                   },
-                  variant: ButtonVariant.unstyled,
+                  variant: ButtonVariant.secondary,
+                  size: ButtonSize.small,
                   child: FlyIcon(Icons.download).color('gray800'),
-                ).w('s10').h('s10').bg('gray100').rounded('md'),
+                ),
               ],
-            ).row().gap('s2'),
+            ).row().gap('s2').justify('start'),
           ],
-        ).row().items('start').gap('s4').px('s6').py('s6'),
+        ).col().gap('s4').px('s6').py('s6'),
 
         // Bio section
         FlyBox(
@@ -127,12 +140,12 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
           selectedTab = index;
         });
       },
-      variant: ButtonVariant.unstyled,
+      variant: isSelected ? ButtonVariant.secondary : ButtonVariant.unstyled,
       child: FlyText(text)
           .text('sm')
           .weight(isSelected ? 'medium' : 'normal')
           .color(isSelected ? 'gray800' : 'gray500'),
-    ).py('s3').px('s4').bg(isSelected ? 'gray200' : null).rounded('md');
+    );
   }
 
   String _getTabContent() {

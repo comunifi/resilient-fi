@@ -146,47 +146,60 @@ class PostCard extends FlyCard {
 
   Widget _buildFooter() {
     return FlyBox(
-      children: [
-        // Like button
-        FlyButton(
-          onTap: onLike,
-          variant: ButtonVariant.unstyled,
-          size: ButtonSize.small,
           children: [
-            FlyIcon(Icons.favorite).color('#ef4444'),
-            FlyText(
-              likeCount.toString(),
-            ).text('sm').weight('medium').color('gray600'),
-          ],
-        ).row().items('center').gap('s1').bg('#f3f4f6').rounded('md').p('s2'),
+            // Left side: Like and Dislike buttons
+            FlyBox(
+              children: [
+                // Like button
+                FlyButton(
+                  onTap: onLike,
+                  variant: ButtonVariant.postAction,
+                  size: ButtonSize.small,
+                  children: [
+                    FlyIcon(Icons.favorite).color('#ef4444'),
+                    FlyText(
+                      likeCount.toString(),
+                    ).text('sm').weight('medium').color('gray600'),
+                  ],
+                ).row().items('center').gap('s1'),
 
-        // Dislike button
-        FlyButton(
-          onTap: onDislike,
-          variant: ButtonVariant.unstyled,
-          size: ButtonSize.small,
-          children: [
-            FlyIcon(Icons.close).color('#6b7280'),
-            FlyText(
-              dislikeCount.toString(),
-            ).text('sm').weight('medium').color('gray600'),
-          ],
-        ).row().items('center').gap('s1').bg('#f3f4f6').rounded('md').p('s2'),
+                // Dislike button
+                FlyButton(
+                  onTap: onDislike,
+                  variant: ButtonVariant.postAction,
+                  size: ButtonSize.small,
+                  children: [
+                    FlyIcon(Icons.close).color('#6b7280'),
+                    FlyText(
+                      dislikeCount.toString(),
+                    ).text('sm').weight('medium').color('gray600'),
+                  ],
+                ).row().items('center').gap('s1'),
+              ],
+            ).row(),
 
-        // Comment button
-        FlyButton(
-          onTap: onComment,
-          variant: ButtonVariant.unstyled,
-          size: ButtonSize.small,
-          children: [
-            FlyIcon(Icons.chat_bubble_outline).color('#6b7280'),
-            FlyText(
-              commentCount.toString(),
-            ).text('sm').weight('medium').color('gray600'),
+            // Right side: Comment button
+            FlyBox(
+              children: [
+                FlyButton(
+                  onTap: onComment,
+                  variant: ButtonVariant.postAction,
+                  size: ButtonSize.small,
+                  children: [
+                    FlyIcon(Icons.chat_bubble_outline).color('#6b7280'),
+                    FlyText(
+                      commentCount.toString(),
+                    ).text('sm').weight('medium').color('gray600'),
+                  ],
+                ),
+              ],
+            ).row(),
           ],
-        ).row().items('center').gap('s1').bg('#f3f4f6').rounded('md').p('s2'),
-      ],
-    ).row().items('center').gap('s3');
+        )
+        // TODO figure out why .jusify(space-between) doesn't work
+        .row(mainAxisAlignment: MainAxisAlignment.spaceBetween)
+        .justify('space-between')
+        .gap('s4');
   }
 
   @override

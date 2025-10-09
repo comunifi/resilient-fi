@@ -43,7 +43,7 @@ class SocialFeedScreen extends StatelessWidget {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: const Text('Comunifi'),
-        backgroundColor: const Color(0xFF7c5cbd),
+        backgroundColor: CupertinoTheme.of(context).primaryColor,
         brightness: Brightness.dark,
         trailing: FlyButton(
           onTap: () {
@@ -83,16 +83,12 @@ class SocialFeedScreen extends StatelessWidget {
                           );
                         },
                         variant: ButtonVariant.unstyled,
-                        child: FlyIcon(
-                          Icons.add,
-                        ).color('white').w('s6').h('s6'),
+                        child: FlyIcon(Icons.add).color('white'),
                       )
-                      .w('s14')
-                      .h('s14')
-                      .bg('purple600')
+                      .w(60)
+                      .h(60)
                       .rounded('999px')
-                      .items('center')
-                      .justify('center'),
+                      .bg(CupertinoTheme.of(context).primaryColor),
             ),
           ],
         ),

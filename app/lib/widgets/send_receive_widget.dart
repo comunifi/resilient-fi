@@ -68,25 +68,19 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
 
                     // Recipient dropdown
                     FlyButton(
-                          onTap: () => _showRecipientSelection(transaction),
-                          variant: ButtonVariant.unstyled,
-                          child: FlyBox(
-                            children: [
-                              FlyText(
-                                transaction.recipient,
-                              ).text('sm').weight('medium').color('gray900'),
-                              FlyIcon(
-                                Icons.keyboard_arrow_down,
-                              ).color('gray600').w('s3').h('s3'),
-                            ],
-                          ).row().items('center').gap('s1'),
-                        )
-                        .bg('white')
-                        .border(1)
-                        .borderColor('gray200')
-                        .rounded('md')
-                        .px('s2')
-                        .py('s1'),
+                      onTap: () => _showRecipientSelection(transaction),
+                      variant: ButtonVariant.secondary,
+                      child: FlyBox(
+                        children: [
+                          FlyText(
+                            transaction.recipient,
+                          ).text('sm').weight('medium').color('gray900'),
+                          FlyIcon(
+                            Icons.keyboard_arrow_down,
+                          ).color('gray600').w('s3').h('s3'),
+                        ],
+                      ).row().items('center').gap('s1'),
+                    ),
                   ],
                 ).row().items('center').gap('s3').justify('space-between'),
 
@@ -113,25 +107,19 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
 
                     // Currency dropdown
                     FlyButton(
-                          onTap: () => _showCurrencySelection(transaction),
-                          variant: ButtonVariant.unstyled,
-                          child: FlyBox(
-                            children: [
-                              FlyText(
-                                transaction.currency,
-                              ).text('sm').weight('medium').color('gray900'),
-                              FlyIcon(
-                                Icons.keyboard_arrow_down,
-                              ).color('gray600').w('s3').h('s3'),
-                            ],
-                          ).row().items('center').gap('s1'),
-                        )
-                        .bg('white')
-                        .border(1)
-                        .borderColor('gray200')
-                        .rounded('md')
-                        .px('s2')
-                        .py('s1'),
+                      onTap: () => _showCurrencySelection(transaction),
+                      variant: ButtonVariant.secondary,
+                      child: FlyBox(
+                        children: [
+                          FlyText(
+                            transaction.currency,
+                          ).text('sm').weight('medium').color('gray900'),
+                          FlyIcon(
+                            Icons.keyboard_arrow_down,
+                          ).color('gray600').w('s3').h('s3'),
+                        ],
+                      ).row().items('center').gap('s1'),
+                    ),
                   ],
                 ).row().items('center').gap('s2'),
               ],
@@ -148,19 +136,9 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                     _transaction = null;
                   });
                 },
-                variant: ButtonVariant.unstyled,
-                child:
-                    FlyBox(
-                          child: FlyIcon(
-                            Icons.close,
-                          ).color('gray600').w('s4').h('s4'),
-                        )
-                        .w('s8')
-                        .h('s8')
-                        .bg('purple100')
-                        .rounded('999px')
-                        .items('center')
-                        .justify('center'),
+                variant: ButtonVariant.secondary,
+                size: ButtonSize.small,
+                child: FlyIcon(Icons.close).color('gray600').w('s4').h('s4'),
               ),
             ),
           ],
@@ -179,44 +157,28 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
       children: [
         // Send button (toggles send mode)
         FlyButton(
-              onTap: _toggleSend,
-              variant: ButtonVariant.unstyled,
-              child: FlyText('Send')
-                  .text('sm')
-                  .weight('medium')
-                  .color(_mode == 'send' ? 'white' : 'purple600'),
-            )
-            .bg(_mode == 'send' ? 'purple600' : 'purple100')
-            .rounded('999px')
-            .px('s4')
-            .py('s2'),
+          onTap: _toggleSend,
+          variant: _mode == 'send'
+              ? ButtonVariant.primary
+              : ButtonVariant.secondary,
+          child: FlyText('Send').text('sm').weight('medium'),
+        ),
 
         // Receive button (toggles receive mode)
         FlyButton(
-              onTap: _toggleReceive,
-              variant: ButtonVariant.unstyled,
-              child: FlyText('Receive')
-                  .text('sm')
-                  .weight('medium')
-                  .color(_mode == 'receive' ? 'white' : 'purple600'),
-            )
-            .bg(_mode == 'receive' ? 'purple600' : 'purple100')
-            .rounded('999px')
-            .px('s4')
-            .py('s2'),
+          onTap: _toggleReceive,
+          variant: _mode == 'receive'
+              ? ButtonVariant.primary
+              : ButtonVariant.secondary,
+          child: FlyText('Receive').text('sm').weight('medium'),
+        ),
 
         // Post button (final action)
         FlyButton(
           onTap: _handlePost,
-          variant: ButtonVariant.unstyled,
-          child:
-              FlyBox(child: FlyIcon(Icons.send).color('white').w('s4').h('s4'))
-                  .w('s10')
-                  .h('s10')
-                  .bg('purple600')
-                  .rounded('999px')
-                  .items('center')
-                  .justify('center'),
+          variant: ButtonVariant.primary,
+          size: ButtonSize.large,
+          child: FlyIcon(Icons.send).color('white').w('s4').h('s4'),
         ),
       ],
     ).row().items('center').gap('s3').justify('space-between');
@@ -263,7 +225,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         ).text('lg').weight('bold').color('gray900'),
         actions: [
           CupertinoActionSheetAction(
-            child: FlyText('John Smith').color('blue600'),
+            child: FlyText('John Smith').color('purple600'),
             onPressed: () {
               setState(() {
                 transaction.recipient = 'John Smith';
@@ -272,7 +234,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('Jane Doe').color('blue600'),
+            child: FlyText('Jane Doe').color('purple600'),
             onPressed: () {
               setState(() {
                 transaction.recipient = 'Jane Doe';
@@ -281,7 +243,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('Bob Wilson').color('blue600'),
+            child: FlyText('Bob Wilson').color('purple600'),
             onPressed: () {
               setState(() {
                 transaction.recipient = 'Bob Wilson';
@@ -307,7 +269,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         ).text('lg').weight('bold').color('gray900'),
         actions: [
           CupertinoActionSheetAction(
-            child: FlyText('USDC').color('blue600'),
+            child: FlyText('USDC').color('purple600'),
             onPressed: () {
               setState(() {
                 transaction.currency = 'USDC';
@@ -316,7 +278,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('USDT').color('blue600'),
+            child: FlyText('USDT').color('purple600'),
             onPressed: () {
               setState(() {
                 transaction.currency = 'USDT';
@@ -325,7 +287,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('ETH').color('blue600'),
+            child: FlyText('ETH').color('purple600'),
             onPressed: () {
               setState(() {
                 transaction.currency = 'ETH';
@@ -378,7 +340,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         content: FlyText(message).color('gray700'),
         actions: [
           CupertinoDialogAction(
-            child: FlyText('OK').color('blue600'),
+            child: FlyText('OK').color('purple600'),
             onPressed: () => Navigator.pop(context),
           ),
         ],
