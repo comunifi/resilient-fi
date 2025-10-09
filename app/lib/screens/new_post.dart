@@ -4,6 +4,7 @@ import 'package:flywind/flywind.dart';
 
 import '../design/button.dart';
 import '../design/sheet.dart';
+import '../widgets/send_receive_widget.dart';
 
 class SimpleNewPostScreen extends StatefulWidget {
   const SimpleNewPostScreen({super.key});
@@ -29,7 +30,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
       initialChildSize: 0.7,
       minChildSize: 0.3,
       maxChildSize: 0.95,
-      showCloseButton: true,
+      showCloseButton: false,
       showBackButton: true,
       showDragHandle: true,
       child: FlyBox(
@@ -81,166 +82,10 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
               .py('s3')
               .mb('s4'),
 
-          // Action buttons
-          FlyBox(
-                children: [
-                  // Add attachment button
-                  FlyButton(
-                        onTap: () {
-                          // TODO: Handle add attachment
-                          showCupertinoDialog(
-                            context: context,
-                            builder: (context) => CupertinoAlertDialog(
-                              title: FlyText('Add Attachment').color('gray900'),
-                              content: FlyText(
-                                'Attachment feature coming soon!',
-                              ).color('gray700'),
-                              actions: [
-                                CupertinoDialogAction(
-                                  child: FlyText('OK').color('blue600'),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        variant: ButtonVariant.unstyled,
-                        child: FlyIcon(
-                          Icons.add,
-                        ).color('purple600').w('s6').h('s6'),
-                      )
-                      .w('s12')
-                      .h('s12')
-                      .bg('purple100')
-                      .rounded('999px')
-                      .items('center')
-                      .justify('center'),
-
-                  // Send button
-                  FlyButton(
-                    onTap: () => _handleSendPost(),
-                    variant: ButtonVariant.unstyled,
-                    child: FlyText(
-                      'Send',
-                    ).text('sm').weight('medium').color('purple600'),
-                  ).bg('purple100').rounded('999px').px('s4').py('s2'),
-
-                  // Request button
-                  FlyButton(
-                    onTap: () => _handleRequestPost(),
-                    variant: ButtonVariant.unstyled,
-                    child: FlyText(
-                      'Request',
-                    ).text('sm').weight('medium').color('purple600'),
-                  ).bg('purple100').rounded('999px').px('s4').py('s2'),
-
-                  // Send post button (primary action)
-                  FlyButton(
-                        onTap: () => _handleSendPost(),
-                        variant: ButtonVariant.unstyled,
-                        child: FlyIcon(
-                          Icons.send,
-                        ).color('white').w('s5').h('s5'),
-                      )
-                      .w('s12')
-                      .h('s12')
-                      .bg('purple600')
-                      .rounded('999px')
-                      .items('center')
-                      .justify('center'),
-                ],
-              )
-              .row()
-              .items('center')
-              .gap('s3')
-              .justify('space-between')
-              .px('s4')
-              .py('s3')
-              .mb('s4'),
+          // Send and Receive mechanism
+          const SendReceiveWidget(),
         ],
       ).col().px('s4'),
-    );
-  }
-
-  void _handleSendPost() {
-    if (_postController.text.trim().isEmpty) {
-      showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: FlyText('Error').color('red600').text('lg').weight('bold'),
-          content: FlyText(
-            'Please enter some text for your post',
-          ).color('gray700'),
-          actions: [
-            CupertinoDialogAction(
-              child: FlyText('OK').color('blue600'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    print('Sending post: ${_postController.text}');
-    print('Community: $selectedCommunity');
-
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: FlyText('Success').color('green600').text('lg').weight('bold'),
-        content: FlyText('Post sent successfully!').color('gray700'),
-        actions: [
-          CupertinoDialogAction(
-            child: FlyText('OK').color('blue600'),
-            onPressed: () {
-              Navigator.pop(context);
-              _postController.clear();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleRequestPost() {
-    if (_postController.text.trim().isEmpty) {
-      showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: FlyText('Error').color('red600').text('lg').weight('bold'),
-          content: FlyText(
-            'Please enter some text for your request',
-          ).color('gray700'),
-          actions: [
-            CupertinoDialogAction(
-              child: FlyText('OK').color('blue600'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    print('Sending request: ${_postController.text}');
-    print('Community: $selectedCommunity');
-
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: FlyText('Success').color('green600').text('lg').weight('bold'),
-        content: FlyText('Request posted successfully!').color('gray700'),
-        actions: [
-          CupertinoDialogAction(
-            child: FlyText('OK').color('blue600'),
-            onPressed: () {
-              Navigator.pop(context);
-              _postController.clear();
-            },
-          ),
-        ],
-      ),
     );
   }
 
