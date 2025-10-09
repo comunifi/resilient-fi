@@ -3,8 +3,8 @@ import 'package:flywind/flywind.dart';
 
 import 'button.dart';
 
-class DraggableSheet extends StatelessWidget {
-  const DraggableSheet({
+class FlySheet extends StatelessWidget {
+  const FlySheet({
     super.key,
     required this.title,
     required this.child,

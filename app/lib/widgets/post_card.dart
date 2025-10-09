@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import 'avatar.dart';
-import 'button.dart';
-import 'card.dart';
+import '../design/avatar.dart';
+import '../design/button.dart';
+import '../design/card.dart';
 import 'transaction_card.dart';
 
 class PostCard extends FlyCard {

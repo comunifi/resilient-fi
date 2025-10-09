@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import 'avatar.dart';
+import '../design/avatar.dart';
 
 class TransactionCard extends FlyBox {
   TransactionCard({

@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import '../widgets/avatar.dart';
-import '../widgets/button.dart';
-import '../widgets/card.dart';
+import '../design/avatar.dart';
+import '../design/button.dart';
+import '../design/card.dart';
 
 class DesignSystemScreen extends StatelessWidget {
   const DesignSystemScreen({super.key});

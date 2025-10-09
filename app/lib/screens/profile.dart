@@ -1,37 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import 'avatar.dart';
-import 'button.dart';
+import '../design/avatar.dart';
+import '../design/button.dart';
+import '../design/sheet.dart';
 
-class ProfileContent extends StatelessWidget {
-  const ProfileContent({
-    super.key,
-    required this.userName,
-    required this.userHandle,
-    required this.avatarText,
-    this.bio,
-    this.connectionCount = 8,
-    this.onStar,
-    this.onShare,
-    this.onDownload,
-    this.onTabChanged,
-    this.selectedTab = 0,
-  });
+class DraggableProfileScreen extends StatefulWidget {
+  const DraggableProfileScreen({super.key});
 
-  final String userName;
-  final String userHandle;
-  final String avatarText;
-  final String? bio;
-  final int connectionCount;
-  final VoidCallback? onStar;
-  final VoidCallback? onShare;
-  final VoidCallback? onDownload;
-  final ValueChanged<int>? onTabChanged;
-  final int selectedTab;
+  @override
+  State<DraggableProfileScreen> createState() => _DraggableProfileScreenState();
+}
+
+class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
+  int selectedTab = 0;
 
   @override
   Widget build(BuildContext context) {
+    return FlySheet(title: 'Profile', child: _buildProfileContent());
+  }
+
+  Widget _buildProfileContent() {
     return FlyBox(
       children: [
         // Profile header with avatar, name, and action buttons
@@ -43,7 +32,7 @@ class ProfileContent extends StatelessWidget {
               shape: AvatarShape.circular,
               children: [
                 FlyAvatarFallback(
-                  fallbackText: avatarText,
+                  fallbackText: 'JS',
                   fallbackIcon: Icons.person,
                 ),
               ],
@@ -51,25 +40,33 @@ class ProfileContent extends StatelessWidget {
             // Name and handle
             FlyBox(
               children: [
-                FlyText(userName).text('xl').weight('bold').color('gray800'),
-                FlyText(userHandle).text('base').color('gray600'),
+                FlyText(
+                  'John Smith',
+                ).text('xl').weight('bold').color('gray800'),
+                FlyText('@john').text('base').color('gray600'),
               ],
             ).col().items('start').gap('s1').flex(1),
             // Action buttons
             FlyBox(
               children: [
                 FlyButton(
-                  onTap: onStar,
+                  onTap: () {
+                    // Handle star action
+                  },
                   variant: ButtonVariant.unstyled,
                   child: FlyIcon(Icons.star_border).color('gray800'),
                 ).w('s10').h('s10').bg('gray100').rounded('md'),
                 FlyButton(
-                  onTap: onShare,
+                  onTap: () {
+                    // Handle share action
+                  },
                   variant: ButtonVariant.unstyled,
                   child: FlyIcon(Icons.share).color('gray800'),
                 ).w('s10').h('s10').bg('gray100').rounded('md'),
                 FlyButton(
-                  onTap: onDownload,
+                  onTap: () {
+                    // Handle download action
+                  },
                   variant: ButtonVariant.unstyled,
                   child: FlyIcon(Icons.download).color('gray800'),
                 ).w('s10').h('s10').bg('gray100').rounded('md'),
@@ -79,17 +76,18 @@ class ProfileContent extends StatelessWidget {
         ).row().items('start').gap('s4').px('s6').py('s6'),
 
         // Bio section
-        if (bio != null)
-          FlyBox(
-            children: [
-              FlyText(bio!).text('sm').color('gray700').leading('relaxed'),
-            ],
-          ).px('s6').pb('s4'),
+        FlyBox(
+          children: [
+            FlyText(
+              'Lorem ipsum dolor sit amet consectetur adipiscing elit. Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex sapien vitae pellentesque sem placerat in id....',
+            ).text('sm').color('gray700').leading('relaxed'),
+          ],
+        ).px('s6').pb('s4'),
 
         // Avatar row (connections/followers)
         FlyBox(
           children: List.generate(
-            connectionCount,
+            8,
             (index) => FlyAvatar(
               size: AvatarSize.sm,
               shape: AvatarShape.circular,
@@ -124,7 +122,11 @@ class ProfileContent extends StatelessWidget {
   Widget _buildTabButton(String text, int index) {
     final isSelected = selectedTab == index;
     return FlyButton(
-      onTap: () => onTabChanged?.call(index),
+      onTap: () {
+        setState(() {
+          selectedTab = index;
+        });
+      },
       variant: ButtonVariant.unstyled,
       child: FlyText(text)
           .text('sm')

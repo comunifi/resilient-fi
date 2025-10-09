@@ -2,9 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import 'screens/draggable_profile_screen.dart';
-import 'widgets/avatar.dart';
-import 'widgets/button.dart';
+import 'design/avatar.dart';
+import 'design/button.dart';
+import 'screens/new_post.dart';
+import 'screens/profile.dart';
 import 'widgets/post_card.dart';
 import 'widgets/transaction_card.dart';
 
@@ -62,8 +63,38 @@ class SocialFeedScreen extends StatelessWidget {
         ),
       ),
       child: SafeArea(
-        child: SingleChildScrollView(
-          child: FlyBox(children: _buildFeedPosts()).col().gap('s4').px('s4'),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              child: FlyBox(
+                children: _buildFeedPosts(),
+              ).col().gap('s4').px('s4'),
+            ),
+            // Floating action button for new post
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child:
+                  FlyButton(
+                        onTap: () {
+                          showCupertinoModalPopup(
+                            context: context,
+                            builder: (context) => const SimpleNewPostScreen(),
+                          );
+                        },
+                        variant: ButtonVariant.unstyled,
+                        child: FlyIcon(
+                          Icons.add,
+                        ).color('white').w('s6').h('s6'),
+                      )
+                      .w('s14')
+                      .h('s14')
+                      .bg('purple600')
+                      .rounded('999px')
+                      .items('center')
+                      .justify('center'),
+            ),
+          ],
         ),
       ),
     );
