@@ -98,6 +98,7 @@ class FlyButton extends FlyGestureDetector {
       justify: 'center',
       items: 'center',
       gap: 's2',
+      w: 'min',
     );
   }
 
@@ -105,35 +106,33 @@ class FlyButton extends FlyGestureDetector {
   Widget build(BuildContext context) {
     final mergedStyle = getDefaultStyle(flyStyle);
 
-    return IntrinsicWidth(
-      child: FlyGestureDetector(
-        key: key,
-        onTap: isLoading ? null : onTap,
-        alignment: alignment,
-        padding: padding,
-        margin: margin,
-        decoration: decoration,
-        foregroundDecoration: foregroundDecoration,
-        width: width,
-        height: height,
-        constraints: constraints,
-        transform: transform,
-        transformAlignment: transformAlignment,
-        clipBehavior: clipBehavior,
-        flyStyle: mergedStyle,
-        children: children,
-        child: isLoading
-            ? FlyBox(
-                children: [
-                  FlySpinner(FlyIcon(Icons.refresh), durationMs: 1000),
-                  FlyText('Loading...')
-                      .color(mergedStyle.color ?? 'white')
-                      .text('sm')
-                      .weight('medium'),
-                ],
-              ).row().items('center').gap('s2')
-            : child,
-      ),
+    return FlyGestureDetector(
+      key: key,
+      onTap: isLoading ? null : onTap,
+      alignment: alignment,
+      padding: padding,
+      margin: margin,
+      decoration: decoration,
+      foregroundDecoration: foregroundDecoration,
+      width: width,
+      height: height,
+      constraints: constraints,
+      transform: transform,
+      transformAlignment: transformAlignment,
+      clipBehavior: clipBehavior,
+      flyStyle: mergedStyle,
+      children: children,
+      child: isLoading
+          ? FlyBox(
+              children: [
+                FlySpinner(FlyIcon(Icons.refresh), durationMs: 1000),
+                FlyText('Loading...')
+                    .color(mergedStyle.color ?? 'white')
+                    .text('sm')
+                    .weight('medium'),
+              ],
+            ).row().items('center').gap('s2')
+          : child,
     );
   }
 
