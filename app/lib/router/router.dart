@@ -40,7 +40,7 @@ GoRouter createRouter(
   List<NavigatorObserver> observers, {
   String? userId,
 }) => GoRouter(
-  initialLocation: userId != null ? '/$userId' : '/',
+  initialLocation: userId != null ? '/$userId/posts' : '/',
   debugLogDiagnostics: kDebugMode,
   navigatorKey: rootNavigatorKey,
   observers: observers,

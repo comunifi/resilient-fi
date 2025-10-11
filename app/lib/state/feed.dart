@@ -14,7 +14,20 @@ class FeedState extends ChangeNotifier {
   final String _userId;
 
   // constructor here - you could pass a user id to the constructor and use it to trigger all methods with that user id
-  FeedState(this._userId) : _nostrService = NostrService(_userId, '@john');
+  FeedState(this._userId) : _nostrService = NostrService();
+
+  void init() {
+    print('FeedState initialized');
+    _nostrService.initialize((isConnected) {
+      print('isConnected: $isConnected');
+      if (!this.isConnected && isConnected) {
+        startListening();
+      }
+
+      this.isConnected = isConnected;
+      safeNotifyListeners();
+    });
+  }
 
   // life cycle methods here
   bool _mounted = true;
@@ -27,12 +40,33 @@ class FeedState extends ChangeNotifier {
   @override
   void dispose() {
     _mounted = false;
+    _messageSubscription?.cancel();
+    _nostrService.disconnect();
     super.dispose();
   }
 
   // state variables here - things that are observable by the UI
   final List<Post> posts = [];
   bool isLoading = false;
+  bool isConnected = false;
+  StreamSubscription<Post>? _messageSubscription;
+
+  Future<void> startListening() async {
+    if (_messageSubscription != null) {
+      await _messageSubscription!.cancel();
+    }
+
+    _messageSubscription = _nostrService.listenToMessages().listen(
+      (post) {
+        // Add new posts to the beginning of the list
+        posts.insert(0, post);
+        safeNotifyListeners();
+      },
+      onError: (error) {
+        print('Error listening to messages: $error');
+      },
+    );
+  }
 
   Future<void> loadPosts() async {
     isLoading = true;

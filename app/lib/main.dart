@@ -1,10 +1,19 @@
 import 'package:app/router/router.dart';
+import 'package:app/services/secure/secure.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flywind/flywind.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: '.env');
+
+  await SecureService().init(await SharedPreferences.getInstance());
+
   runApp(const MainApp());
 }
 
@@ -26,14 +35,18 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
 
-    final String? userId =
-        null; // when user is logged in we can set it to instantly be in the app without navigating
+    String publicKey = '';
+    if (!SecureService().hasCredentials()) {
+      (publicKey, _) = SecureService().createCredentials();
+    } else {
+      (publicKey, _) = SecureService().getCredentials()!;
+    }
 
     router = createRouter(
       _rootNavigatorKey,
       _appShellNavigatorKey,
       observers,
-      userId: userId,
+      userId: publicKey,
     );
   }
 

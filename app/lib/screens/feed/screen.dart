@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app/design/avatar.dart';
 import 'package:app/design/button.dart';
 import 'package:app/models/post.dart';
@@ -34,6 +36,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   }
 
   void onLoad() {
+    _feedState.init();
     _feedState.loadPosts();
   }
 
