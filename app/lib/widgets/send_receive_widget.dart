@@ -5,7 +5,9 @@ import 'package:flywind/flywind.dart';
 import '../design/button.dart';
 
 class SendReceiveWidget extends StatefulWidget {
-  const SendReceiveWidget({super.key});
+  final Function() onPost;
+
+  const SendReceiveWidget({super.key, required this.onPost});
 
   @override
   State<SendReceiveWidget> createState() => _SendReceiveWidgetState();
@@ -306,7 +308,8 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
 
   void _handlePost() {
     if (_mode == 'none') {
-      _showDialog('Error', 'Please select Send or Receive first');
+      // _showDialog('Error', 'Please select Send or Receive first');
+      widget.onPost();
       return;
     }
 

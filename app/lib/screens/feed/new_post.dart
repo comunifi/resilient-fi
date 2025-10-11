@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
+import 'package:go_router/go_router.dart';
 
-import '../design/button.dart';
-import '../design/sheet.dart';
-import '../widgets/send_receive_widget.dart';
+import '../../design/button.dart';
+import '../../design/sheet.dart';
+import '../../widgets/send_receive_widget.dart';
 
 class SimpleNewPostScreen extends StatefulWidget {
   const SimpleNewPostScreen({super.key});
@@ -32,6 +33,12 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
     _postController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _handlePost() {
+    GoRouter.of(context).pop(
+      _postController.text,
+    ); // here, when pop is called, the value is returned
   }
 
   @override
@@ -89,7 +96,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
               .mb('s4'),
 
           // Send and Receive mechanism
-          const SendReceiveWidget(),
+          SendReceiveWidget(onPost: _handlePost),
         ],
       ).col().px('s4'),
     );

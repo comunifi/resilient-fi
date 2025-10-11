@@ -1,199 +1,58 @@
+import 'package:app/router/router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
-
-import 'design/avatar.dart';
-import 'design/button.dart';
-import 'screens/new_post.dart';
-import 'screens/profile.dart';
-import 'widgets/post_card.dart';
-import 'widgets/transaction_card.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   runApp(const MainApp());
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  final _rootNavigatorKey = GlobalKey<NavigatorState>();
+  final _appShellNavigatorKey = GlobalKey<NavigatorState>();
+  final observers = <NavigatorObserver>[];
+
+  late GoRouter router;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final String? userId =
+        null; // when user is logged in we can set it to instantly be in the app without navigating
+
+    router = createRouter(
+      _rootNavigatorKey,
+      _appShellNavigatorKey,
+      observers,
+      userId: userId,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Flywind(
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.system, // shouldn't mix material and cupertino
       themeData: FlyThemeData.withDefaults(),
       appBuilder: (context) {
-        return CupertinoApp(
+        return CupertinoApp.router(
+          debugShowCheckedModeBanner: false,
           title: 'Comunifi',
           theme: CupertinoThemeData(
             primaryColor: const Color(0xFF7c5cbd), // Purple theme
             brightness: Brightness.light,
           ),
-          home: const SocialFeedScreen(),
+          routerConfig: router,
         );
       },
     );
-  }
-}
-
-class SocialFeedScreen extends StatelessWidget {
-  const SocialFeedScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Comunifi'),
-        backgroundColor: CupertinoTheme.of(context).primaryColor,
-        brightness: Brightness.dark,
-        trailing: FlyButton(
-          onTap: () {
-            showCupertinoModalPopup(
-              context: context,
-              builder: (context) => const DraggableProfileScreen(),
-            );
-          },
-          variant: ButtonVariant.unstyled,
-          child: FlyAvatar(
-            size: AvatarSize.xs,
-            shape: AvatarShape.circular,
-            children: [
-              FlyAvatarFallback(fallbackText: 'JS', fallbackIcon: Icons.person),
-            ],
-          ),
-        ),
-      ),
-      child: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              child: FlyBox(
-                children: _buildFeedPosts(),
-              ).col().gap('s4').px('s4'),
-            ),
-            // Floating action button for new post
-            Positioned(
-              bottom: 20,
-              right: 20,
-              child:
-                  FlyButton(
-                        onTap: () {
-                          showCupertinoModalPopup(
-                            context: context,
-                            builder: (context) => const SimpleNewPostScreen(),
-                          );
-                        },
-                        variant: ButtonVariant.unstyled,
-                        child: FlyIcon(Icons.add).color('white'),
-                      )
-                      .w(60)
-                      .h(60)
-                      .rounded('999px')
-                      .bg(CupertinoTheme.of(context).primaryColor),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildFeedPosts() {
-    return [
-      // Regular post
-      PostCard(
-        userName: 'John Smith',
-        userId: '##d',
-        content:
-            'Lorem ipsum dolor sit amet consectetur adipiscing elit. Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex sapien vitae pellentesque sem placer...',
-        userInitials: 'JS',
-        likeCount: 12,
-        dislikeCount: 3,
-        commentCount: 8,
-        onLike: () {},
-        onDislike: () {},
-        onComment: () {},
-        onShare: () {},
-        onMore: () {},
-      ),
-
-      // Post with transaction
-      PostCard(
-        userName: 'John Smith',
-        userId: '##d',
-        content:
-            'Lorem ipsum dolor sit amet consectetur adipiscing elit. Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex sapien vitae pellentesque sem placer...',
-        userInitials: 'JS',
-        likeCount: 24,
-        dislikeCount: 1,
-        commentCount: 15,
-        transaction: TransactionCard(
-          senderName: 'John Smith',
-          amount: '1,250 USDC',
-          timeAgo: '2 days ago',
-          senderInitials: 'JS',
-        ),
-        onLike: () {},
-        onDislike: () {},
-        onComment: () {},
-        onShare: () {},
-        onMore: () {},
-      ),
-
-      // Another regular post
-      PostCard(
-        userName: 'Sarah Wilson',
-        userId: '##e',
-        content:
-            'Just finished an amazing DeFi protocol integration! The community response has been incredible. Building the future of finance one transaction at a time.',
-        userInitials: 'SW',
-        likeCount: 45,
-        dislikeCount: 2,
-        commentCount: 23,
-        onLike: () {},
-        onDislike: () {},
-        onComment: () {},
-        onShare: () {},
-        onMore: () {},
-      ),
-
-      // Post with transaction
-      PostCard(
-        userName: 'Mike Chen',
-        userId: '##f',
-        content:
-            'Excited to share our latest liquidity pool metrics. The numbers are looking fantastic!',
-        userInitials: 'MC',
-        likeCount: 18,
-        dislikeCount: 0,
-        commentCount: 7,
-        transaction: TransactionCard(
-          senderName: 'Mike Chen',
-          amount: '5,750 USDC',
-          timeAgo: '1 day ago',
-          senderInitials: 'MC',
-        ),
-        onLike: () {},
-        onDislike: () {},
-        onComment: () {},
-        onShare: () {},
-        onMore: () {},
-      ),
-
-      // Another regular post
-      PostCard(
-        userName: 'Alex Rodriguez',
-        userId: '##g',
-        content:
-            'The DeFi space is evolving so rapidly. What innovations are you most excited about?',
-        userInitials: 'AR',
-        likeCount: 32,
-        dislikeCount: 1,
-        commentCount: 19,
-        onLike: () {},
-        onDislike: () {},
-        onComment: () {},
-        onShare: () {},
-        onMore: () {},
-      ),
-    ];
   }
 }

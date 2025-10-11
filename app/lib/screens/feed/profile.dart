@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
-import '../design/avatar.dart';
-import '../design/button.dart';
-import '../design/sheet.dart';
+import '../../design/avatar.dart';
+import '../../design/button.dart';
+import '../../design/sheet.dart';
 
 class DraggableProfileScreen extends StatefulWidget {
   const DraggableProfileScreen({super.key});
