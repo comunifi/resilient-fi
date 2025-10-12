@@ -23,12 +23,17 @@ class SocialFeedScreen extends StatefulWidget {
 
 class _SocialFeedScreenState extends State<SocialFeedScreen> {
   late FeedState _feedState;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
 
     _feedState = context.read<FeedState>();
+    _scrollController = ScrollController();
+
+    // Add scroll listener for pagination
+    _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       onLoad();
@@ -37,16 +42,26 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 
   void onLoad() {
     _feedState.init();
-    _feedState.loadPosts();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
+  void _onScroll() {
+    // Check if we've scrolled to the bottom
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      // Load more posts when near the bottom
+      _feedState.loadMorePosts();
+    }
+  }
+
   Future<void> handleRefresh() async {
-    await _feedState.loadPosts();
+    await _feedState.refreshPosts();
   }
 
   Future<void> handleProfile() async {
@@ -73,9 +88,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final posts = context
-        .watch<FeedState>()
-        .posts; // this is how you watch a specific part of the state
+    final feedState = context.watch<FeedState>();
+    final posts = feedState.posts;
+    final isLoadingMore = feedState.isLoadingMore;
+    final hasMorePosts = feedState.hasMorePosts;
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -98,6 +114,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
         child: Stack(
           children: [
             CustomScrollView(
+              controller: _scrollController,
               scrollBehavior: const CupertinoScrollBehavior(),
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -106,10 +123,32 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                 ), // the Future returned by the function is what makes the spinner go away
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    childCount: posts.length,
-                    (context, index) => _buildPostCard(posts[index]),
+                    childCount: posts.length + (isLoadingMore ? 1 : 0),
+                    (context, index) {
+                      // Show loading indicator at the bottom
+                      if (index == posts.length) {
+                        return _buildLoadingIndicator();
+                      }
+                      return _buildPostCard(posts[index]);
+                    },
                   ),
                 ),
+                // Show "no more posts" message if we've reached the end
+                if (!hasMorePosts && posts.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: const Center(
+                        child: Text(
+                          'No more posts to load',
+                          style: TextStyle(
+                            color: CupertinoColors.systemGrey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
             // Floating action button for new post
@@ -151,6 +190,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
               senderInitials: post.transaction!.senderInitials,
             )
           : null,
+      createdAt: post.createdAt,
       onLike: () {
         // TODO: Implement like functionality
       },
@@ -167,6 +207,13 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
       onMore: () {
         // TODO: Implement more options functionality
       },
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: const Center(child: CupertinoActivityIndicator()),
     );
   }
 }

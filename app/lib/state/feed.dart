@@ -1,27 +1,22 @@
 import 'dart:async';
 
 import 'package:app/models/post.dart';
-import 'package:app/models/transaction.dart';
 import 'package:app/services/nostr/nostr.dart';
-import 'package:app/utils/delay.dart';
 import 'package:flutter/cupertino.dart';
 
 class FeedState extends ChangeNotifier {
   // instantiate services here - local storage, db, api, etc.
   final NostrService _nostrService;
 
-  // private variables here - things that the UI doesn't need
-  final String _userId;
-
   // constructor here - you could pass a user id to the constructor and use it to trigger all methods with that user id
-  FeedState(this._userId) : _nostrService = NostrService();
+  FeedState() : _nostrService = NostrService();
 
   void init() {
-    print('FeedState initialized');
     _nostrService.initialize((isConnected) {
-      print('isConnected: $isConnected');
       if (!this.isConnected && isConnected) {
+        _lastLoadedAt = DateTime.now();
         startListening();
+        loadPosts();
       }
 
       this.isConnected = isConnected;
@@ -48,40 +43,156 @@ class FeedState extends ChangeNotifier {
   // state variables here - things that are observable by the UI
   final List<Post> posts = [];
   bool isLoading = false;
+  bool isLoadingMore = false;
   bool isConnected = false;
+  bool hasMorePosts = true;
   StreamSubscription<Post>? _messageSubscription;
+
+  DateTime? _now;
+  DateTime? _lastLoadedAt;
 
   Future<void> startListening() async {
     if (_messageSubscription != null) {
       await _messageSubscription!.cancel();
     }
 
-    _messageSubscription = _nostrService.listenToMessages().listen(
-      (post) {
-        // Add new posts to the beginning of the list
-        posts.insert(0, post);
-        safeNotifyListeners();
-      },
-      onError: (error) {
-        print('Error listening to messages: $error');
-      },
-    );
+    _messageSubscription = _nostrService
+        .listenToMessages(since: _now)
+        .listen(
+          (post) {
+            // Check if post already exists to avoid duplicates
+            final existingPost = posts.any(
+              (existingPost) => existingPost.id == post.id,
+            );
+
+            if (!existingPost) {
+              // Add new posts to the beginning of the list
+              posts.insert(0, post);
+              safeNotifyListeners();
+            }
+          },
+          onError: (error) {
+            print('Error listening to messages: $error');
+          },
+        );
   }
 
   Future<void> loadPosts() async {
     isLoading = true;
-
+    hasMorePosts = true;
     safeNotifyListeners(); // call this to tell the UI to update
 
-    posts.clear();
-    posts.addAll(mockPosts);
-    safeNotifyListeners(); // call this to tell the UI to update
+    try {
+      final limit = 10;
 
-    // just for fake loading since provider will optimize the updates, you won't see true/false loading unless there's a fake delay while we test things
-    await delay(const Duration(seconds: 1));
+      // Load initial limit posts from Nostr (most recent posts)
+      final historicalPosts = await _nostrService.loadHistoricalMessages(
+        limit: limit,
+        until: _lastLoadedAt,
+      );
+
+      posts.clear();
+      upsertPosts(historicalPosts);
+
+      // If we got less than 20 posts, we've reached the end
+      if (historicalPosts.length < limit) {
+        hasMorePosts = false;
+      }
+
+      safeNotifyListeners(); // call this to tell the UI to update
+    } catch (e) {
+      print('Error loading posts: $e');
+      // Fallback to mock posts for development
+      posts.clear();
+      safeNotifyListeners();
+    }
 
     isLoading = false;
     safeNotifyListeners(); // call this to tell the UI to update
+  }
+
+  Future<void> refreshPosts() async {
+    // Clear existing posts and reset pagination state
+    posts.clear();
+    hasMorePosts = true;
+    safeNotifyListeners();
+
+    // Cancel existing message subscription to restart fresh
+    if (_messageSubscription != null) {
+      await _messageSubscription!.cancel();
+      _messageSubscription = null;
+    }
+
+    final limit = 10;
+    _now = DateTime.now();
+    _lastLoadedAt = DateTime.now();
+
+    try {
+      // Load the latest 20 posts from Nostr (most recent posts)
+      final historicalPosts = await _nostrService.loadHistoricalMessages(
+        limit: limit,
+        until: _lastLoadedAt,
+      );
+
+      upsertPosts(historicalPosts);
+
+      // If we got less than limit posts, we've reached the end
+      if (historicalPosts.length < limit) {
+        hasMorePosts = false;
+      }
+
+      safeNotifyListeners();
+
+      // Start listening for new messages after loading historical posts
+      if (isConnected) {
+        startListening();
+      }
+    } catch (e) {
+      print('Error refreshing posts: $e');
+      // Fallback to mock posts for development
+      safeNotifyListeners();
+    }
+  }
+
+  Future<void> loadMorePosts() async {
+    if (isLoadingMore || !hasMorePosts || posts.isEmpty) {
+      return;
+    }
+
+    final limit = 10;
+
+    isLoadingMore = true;
+    safeNotifyListeners();
+
+    try {
+      // Get the timestamp of the oldest post to load messages before it
+      final oldestPost = posts.last;
+      final until = oldestPost.createdAt;
+
+      // Load next 20 posts
+      final morePosts = await _nostrService.loadHistoricalMessages(
+        limit: limit,
+        until: until,
+      );
+
+      if (morePosts.isNotEmpty) {
+        upsertPosts(morePosts);
+
+        // If we got less than limit posts, we've reached the end
+        if (morePosts.length < limit) {
+          hasMorePosts = false;
+        }
+      } else {
+        hasMorePosts = false;
+      }
+
+      safeNotifyListeners();
+    } catch (e) {
+      print('Error loading more posts: $e');
+    }
+
+    isLoadingMore = false;
+    safeNotifyListeners();
   }
 
   Future<void> createPost(String content) async {
@@ -95,94 +206,15 @@ class FeedState extends ChangeNotifier {
     isLoading = false;
     safeNotifyListeners();
   }
+
+  void upsertPosts(List<Post> posts) {
+    for (var post in posts) {
+      final existingPostIndex = this.posts.indexWhere((p) => p.id == post.id);
+      if (existingPostIndex != -1) {
+        this.posts[existingPostIndex] = post;
+      } else {
+        this.posts.add(post);
+      }
+    }
+  }
 }
-
-// just for the example until we hook up nostr
-final List<Post> mockPosts = [
-  // Regular post
-  Post(
-    id: 'post_1',
-    userName: 'John Smith',
-    userId: '##d',
-    content:
-        'Lorem ipsum dolor sit amet consectetur adipiscing elit. Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex sapien vitae pellentesque sem placer...',
-    userInitials: 'JS',
-    likeCount: 12,
-    dislikeCount: 3,
-    commentCount: 8,
-    createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-    updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
-  ),
-
-  // Post with transaction
-  Post(
-    id: 'post_2',
-    userName: 'John Smith',
-    userId: '##d',
-    content:
-        '2Lorem ipsum dolor sit amet consectetur adipiscing elit. Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex sapien vitae pellentesque sem placer...',
-    userInitials: 'JS',
-    likeCount: 24,
-    dislikeCount: 1,
-    commentCount: 15,
-    transaction: const Transaction(
-      senderName: 'John Smith',
-      amount: '1,250 USDC',
-      timeAgo: '2 days ago',
-      senderInitials: 'JS',
-    ),
-    createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    updatedAt: DateTime.now().subtract(const Duration(days: 2)),
-  ),
-
-  // Another regular post
-  Post(
-    id: 'post_3',
-    userName: 'Sarah Wilson',
-    userId: '##e',
-    content:
-        'Just finished an amazing DeFi protocol integration! The community response has been incredible. Building the future of finance one transaction at a time.',
-    userInitials: 'SW',
-    likeCount: 45,
-    dislikeCount: 2,
-    commentCount: 23,
-    createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-    updatedAt: DateTime.now().subtract(const Duration(hours: 5)),
-  ),
-
-  // Post with transaction
-  Post(
-    id: 'post_4',
-    userName: 'Mike Chen',
-    userId: '##f',
-    content:
-        'Excited to share our latest liquidity pool metrics. The numbers are looking fantastic!',
-    userInitials: 'MC',
-    likeCount: 18,
-    dislikeCount: 0,
-    commentCount: 7,
-    transaction: const Transaction(
-      senderName: 'Mike Chen',
-      amount: '5,750 USDC',
-      timeAgo: '1 day ago',
-      senderInitials: 'MC',
-    ),
-    createdAt: DateTime.now().subtract(const Duration(days: 1)),
-    updatedAt: DateTime.now().subtract(const Duration(days: 1)),
-  ),
-
-  // Another regular post
-  Post(
-    id: 'post_5',
-    userName: 'Alex Rodriguez',
-    userId: '##g',
-    content:
-        'The DeFi space is evolving so rapidly. What innovations are you most excited about?',
-    userInitials: 'AR',
-    likeCount: 32,
-    dislikeCount: 1,
-    commentCount: 19,
-    createdAt: DateTime.now().subtract(const Duration(hours: 8)),
-    updatedAt: DateTime.now().subtract(const Duration(hours: 8)),
-  ),
-];

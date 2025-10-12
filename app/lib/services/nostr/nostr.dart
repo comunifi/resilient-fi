@@ -24,11 +24,11 @@ class NostrService {
       debugPrint('Initializing Nostr service');
       await _nostr.services.relays.init(
         relaysUrl: _relays,
-        onRelayListening: (relayUrl, relay, channel) {
-          debugPrint('onRelayListening: $relayUrl');
-          _isConnected = true;
-          onConnected(true);
-        },
+        // onRelayListening: (relayUrl, relay, channel) {
+        //   debugPrint('onRelayListening: $relayUrl');
+        //   _isConnected = true;
+        //   onConnected(true);
+        // },
         onRelayConnectionError: (relayUrl, error, channel) {
           debugPrint('onRelayConnectionError $relayUrl: $error');
           onConnected(false);
@@ -92,7 +92,7 @@ class NostrService {
       );
 
       // Send the event to relays
-      final okCommand = await _nostr.services.relays.sendEventToRelaysAsync(
+      await _nostr.services.relays.sendEventToRelaysAsync(
         event,
         timeout: const Duration(seconds: 10),
       );
@@ -115,7 +115,11 @@ class NostrService {
   }
 
   /// Start listening for messages (kind 1) from Nostr relays
-  Stream<Post> listenToMessages({List<String>? authors, int? limit}) {
+  Stream<Post> listenToMessages({
+    List<String>? authors,
+    int? limit,
+    DateTime? since,
+  }) {
     debugPrint('Listening to messages indefinitely');
     if (!_isConnected) {
       throw Exception('Not connected to Nostr relays');
@@ -127,7 +131,7 @@ class NostrService {
       filters: [
         NostrFilter(
           kinds: const [1], // Text notes
-          since: DateTime.now(),
+          since: since,
           authors: authors,
           limit: limit, // Only apply limit if explicitly provided
         ),
@@ -164,6 +168,82 @@ class NostrService {
   /// Listen for all public messages
   Stream<Post> listenToPublicMessages({int? limit}) {
     return listenToMessages(limit: limit);
+  }
+
+  /// Load historical messages with pagination
+  Future<List<Post>> loadHistoricalMessages({
+    List<String>? authors,
+    int limit = 20,
+    DateTime? until,
+  }) async {
+    if (!_isConnected) {
+      throw Exception('Not connected to Nostr relays');
+    }
+
+    try {
+      // Create a request for historical messages
+      final request = NostrRequest(
+        filters: [
+          NostrFilter(
+            kinds: const [1], // Text notes
+            until: until, // Load messages before this timestamp
+            authors: authors,
+            limit: limit,
+          ),
+        ],
+      );
+
+      // Start the subscription for historical messages
+      final events = await _nostr.services.relays.startEventsSubscriptionAsync(
+        request: request,
+        timeout: const Duration(seconds: 1),
+        onEose: (eose, cmd) {
+          print('onEose: $eose $cmd');
+          // Sort posts by creation date (newest first)
+          // posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          // completer.complete(posts);
+          return;
+        },
+        shouldThrowErrorOnTimeoutWithoutEose: false,
+      );
+
+      debugPrint('Historical messages loaded: ${events.length} posts');
+
+      final posts = events
+          .map(
+            (event) => Post(
+              id: event.id ?? '',
+              userName: event.pubkey,
+              userId: event.pubkey,
+              content: event.content ?? '',
+              createdAt: event.createdAt ?? DateTime.now(),
+              updatedAt: event.createdAt ?? DateTime.now(),
+            ),
+          )
+          .toList();
+
+      if (posts.isEmpty) {
+        return [];
+      }
+
+      posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      // Set a timeout to prevent hanging
+      return posts;
+      // return completer.future.timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('Error loading historical messages: $e');
+      rethrow;
+    }
+  }
+
+  /// Load messages from specific authors with pagination
+  Future<List<Post>> loadUserHistoricalMessages(
+    List<String> authors, {
+    int limit = 20,
+    DateTime? until,
+  }) async {
+    return loadHistoricalMessages(authors: authors, limit: limit, until: until);
   }
 
   /// Get public key of current user

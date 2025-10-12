@@ -156,6 +156,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               senderInitials: post.transaction!.senderInitials,
             )
           : null,
+      createdAt: post.createdAt,
       onLike: () {
         // TODO: Implement like functionality
       },
@@ -193,6 +194,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               senderInitials: reply.transaction!.senderInitials,
             )
           : null,
+      createdAt: reply.createdAt,
       onLike: () {
         // TODO: Implement like functionality for replies
       },

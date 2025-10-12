@@ -7,7 +7,7 @@ Widget provideAppState(
   Widget? child, {
   Widget Function(BuildContext, Widget?)? builder,
 }) => MultiProvider(
-  providers: [ChangeNotifierProvider(create: (_) => FeedState(userId))],
+  providers: [ChangeNotifierProvider(create: (_) => FeedState())],
   builder: builder,
   child: child,
 );

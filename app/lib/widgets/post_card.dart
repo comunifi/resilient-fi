@@ -31,6 +31,7 @@ class PostCard extends FlyCard {
     this.dislikeCount = 0,
     this.commentCount = 0,
     this.transaction,
+    this.createdAt,
     this.onLike,
     this.onDislike,
     this.onComment,
@@ -47,6 +48,7 @@ class PostCard extends FlyCard {
   final int dislikeCount;
   final int commentCount;
   final TransactionCard? transaction;
+  final DateTime? createdAt;
   final VoidCallback? onLike;
   final VoidCallback? onDislike;
   final VoidCallback? onComment;
@@ -111,11 +113,13 @@ class PostCard extends FlyCard {
           ],
         ),
 
-        // User name and ID
+        // User name, ID, and timestamp
         FlyBox(
           children: [
             FlyText(userName).text('base').weight('semibold').color('gray800'),
             FlyText(userId).text('sm').color('gray500'),
+            if (createdAt != null)
+              FlyText(_formatTimestamp(createdAt!)).text('xs').color('gray400'),
           ],
         ).col().items('start').gap('s1').flex(1),
 
@@ -202,6 +206,21 @@ class PostCard extends FlyCard {
         .gap('s4');
   }
 
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'now';
+    }
+  }
+
   @override
   PostCard Function(FlyStyle newStyle) get copyWith => (newStyle) {
     return PostCard(
@@ -227,6 +246,7 @@ class PostCard extends FlyCard {
       dislikeCount: dislikeCount,
       commentCount: commentCount,
       transaction: transaction,
+      createdAt: createdAt,
       onLike: onLike,
       onDislike: onDislike,
       onComment: onComment,
