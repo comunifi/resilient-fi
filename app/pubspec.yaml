@@ -17,8 +17,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.3
   web3dart: ^2.7.3
-  dart_nostr: ^9.2.2
+  dart_nostr:
+    path: ../../dart_nostr
   flutter_dotenv: ^6.0.0
+  web_socket_channel: ^2.4.0
 
 dev_dependencies:
   flutter_test:

@@ -204,11 +204,10 @@ packages:
   dart_nostr:
     dependency: "direct main"
     description:
-      name: dart_nostr
-      sha256: "4f4ae5a4be9adca6f25773b72fed158ce71565ec6f6e70c9e682cce34888aaa4"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.2.2"
+      path: "../../dart_nostr"
+      relative: true
+    source: path
+    version: "9.2.1"
   dart_style:
     dependency: transitive
     description:
@@ -821,7 +820,7 @@ packages:
     source: hosted
     version: "2.7.3"
   web_socket_channel:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: web_socket_channel
       sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b

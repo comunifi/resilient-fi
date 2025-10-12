@@ -1,21 +1,23 @@
 import 'dart:async';
 
+import 'package:app/models/nostr_event.dart';
 import 'package:app/models/post.dart';
 import 'package:app/services/nostr/nostr.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FeedState extends ChangeNotifier {
   // instantiate services here - local storage, db, api, etc.
   final NostrService _nostrService;
 
   // constructor here - you could pass a user id to the constructor and use it to trigger all methods with that user id
-  FeedState() : _nostrService = NostrService();
+  FeedState() : _nostrService = NostrService(dotenv.get('RELAY_URL'));
 
   void init() {
-    _nostrService.initialize((isConnected) {
+    _nostrService.connect((isConnected) async {
       if (!this.isConnected && isConnected) {
         _lastLoadedAt = DateTime.now();
-        startListening();
+        await startListening();
         loadPosts();
       }
 
@@ -46,9 +48,8 @@ class FeedState extends ChangeNotifier {
   bool isLoadingMore = false;
   bool isConnected = false;
   bool hasMorePosts = true;
-  StreamSubscription<Post>? _messageSubscription;
+  StreamSubscription<NostrEventModel>? _messageSubscription;
 
-  DateTime? _now;
   DateTime? _lastLoadedAt;
 
   Future<void> startListening() async {
@@ -57,17 +58,37 @@ class FeedState extends ChangeNotifier {
     }
 
     _messageSubscription = _nostrService
-        .listenToMessages(since: _now)
+        .listenToEvents(kind: 1, since: _lastLoadedAt)
         .listen(
-          (post) {
+          (event) {
             // Check if post already exists to avoid duplicates
-            final existingPost = posts.any(
-              (existingPost) => existingPost.id == post.id,
+            final existingPostIndex = posts.indexWhere(
+              (existingPost) => existingPost.id == event.id,
             );
 
-            if (!existingPost) {
+            if (existingPostIndex == -1) {
               // Add new posts to the beginning of the list
-              posts.insert(0, post);
+              posts.insert(
+                0,
+                Post(
+                  id: event.id,
+                  userName: event.pubkey,
+                  userId: event.pubkey,
+                  content: event.content,
+                  createdAt: event.createdAt,
+                  updatedAt: event.createdAt,
+                ),
+              );
+              safeNotifyListeners();
+            } else {
+              posts[existingPostIndex] = Post(
+                id: event.id,
+                userName: event.pubkey,
+                userId: event.pubkey,
+                content: event.content,
+                createdAt: event.createdAt,
+                updatedAt: event.createdAt,
+              );
               safeNotifyListeners();
             }
           },
@@ -86,10 +107,24 @@ class FeedState extends ChangeNotifier {
       final limit = 10;
 
       // Load initial limit posts from Nostr (most recent posts)
-      final historicalPosts = await _nostrService.loadHistoricalMessages(
+      final historicalEvents = await _nostrService.requestPastEvents(
+        kind: 1,
         limit: limit,
         until: _lastLoadedAt,
       );
+
+      final historicalPosts = historicalEvents
+          .map(
+            (event) => Post(
+              id: event.id,
+              userName: event.pubkey,
+              userId: event.pubkey,
+              content: event.content,
+              createdAt: event.createdAt,
+              updatedAt: event.createdAt,
+            ),
+          )
+          .toList();
 
       posts.clear();
       upsertPosts(historicalPosts);
@@ -124,15 +159,28 @@ class FeedState extends ChangeNotifier {
     }
 
     final limit = 10;
-    _now = DateTime.now();
     _lastLoadedAt = DateTime.now();
 
     try {
       // Load the latest 20 posts from Nostr (most recent posts)
-      final historicalPosts = await _nostrService.loadHistoricalMessages(
+      final historicalEvents = await _nostrService.requestPastEvents(
+        kind: 1,
         limit: limit,
         until: _lastLoadedAt,
       );
+
+      final historicalPosts = historicalEvents
+          .map(
+            (event) => Post(
+              id: event.id,
+              userName: event.pubkey,
+              userId: event.pubkey,
+              content: event.content,
+              createdAt: event.createdAt,
+              updatedAt: event.createdAt,
+            ),
+          )
+          .toList();
 
       upsertPosts(historicalPosts);
 
@@ -170,12 +218,26 @@ class FeedState extends ChangeNotifier {
       final until = oldestPost.createdAt;
 
       // Load next 20 posts
-      final morePosts = await _nostrService.loadHistoricalMessages(
+      final moreEvents = await _nostrService.requestPastEvents(
+        kind: 1,
         limit: limit,
         until: until,
       );
 
-      if (morePosts.isNotEmpty) {
+      if (moreEvents.isNotEmpty) {
+        final morePosts = moreEvents
+            .map(
+              (event) => Post(
+                id: event.id,
+                userName: event.pubkey,
+                userId: event.pubkey,
+                content: event.content,
+                createdAt: event.createdAt,
+                updatedAt: event.createdAt,
+              ),
+            )
+            .toList();
+
         upsertPosts(morePosts);
 
         // If we got less than limit posts, we've reached the end
@@ -199,7 +261,18 @@ class FeedState extends ChangeNotifier {
     isLoading = true;
     safeNotifyListeners();
 
-    final post = await _nostrService.createPost(content);
+    final event = await _nostrService.publishEvent(
+      NostrEventModel.fromPartialData(kind: 1, content: content),
+    );
+
+    final post = Post(
+      id: event.id,
+      userName: event.pubkey,
+      userId: event.pubkey,
+      content: event.content,
+      createdAt: event.createdAt,
+      updatedAt: event.createdAt,
+    );
 
     posts.insert(0, post);
 

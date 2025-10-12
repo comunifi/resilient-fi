@@ -1,124 +1,127 @@
-# Nostr Service
+# WebSocket Nostr Service
 
-This service provides a basic Nostr client implementation using the `dart_nostr` package. It supports posting messages (kind 1) and listening for messages from Nostr relays.
+A pure WebSocket implementation of the Nostr protocol for listening to events of specific kinds.
 
 ## Features
 
-- **Key Management**: Automatic generation and secure storage of Nostr key pairs
-- **Message Posting**: Create and post text messages (kind 1) to Nostr relays
-- **Message Listening**: Listen to messages from specific authors or all public messages
-- **Relay Connection**: Connect to and manage connections to Nostr relays
-- **Error Handling**: Comprehensive error handling and connection management
+- Pure WebSocket connection to Nostr relays
+- Stream-based event listening
+- Support for filtering by event kind, authors, tags, and time ranges
+- Automatic subscription management
+- Connection state tracking
 
 ## Usage
 
-### 1. Create Credentials (if needed)
+### Basic Setup
 
 ```dart
-final secureService = SecureService();
-if (!secureService.hasCredentials()) {
-  final (publicKey, privateKey) = secureService.createCredentials();
-  print('Created new credentials: $publicKey');
-}
+import 'package:app/services/nostr/websocket_nostr.dart';
+
+// Initialize with a relay URL
+final nostrService = WebSocketNostrService('wss://relay.damus.io');
+
+// Connect to the relay
+await nostrService.connect();
 ```
 
-### 2. Initialize the Service
+### Listening to Events
 
 ```dart
-final nostrService = NostrService('user123', 'username');
-await nostrService.initialize();
+// Listen to text notes (kind 1)
+final subscription = nostrService.listenToEvents(
+  kind: 1, // Text notes
+  limit: 10, // Limit to 10 events
+).listen(
+  (event) {
+    print('Received event: ${event.content}');
+    print('Author: ${event.pubkey}');
+  },
+);
+
+// Don't forget to cancel the subscription when done
+await subscription.cancel();
 ```
 
-### 3. Post a Message
+### Filtering Options
 
 ```dart
-try {
-  final post = await nostrService.createPost('Hello, Nostr!');
-  print('Message posted: ${post.id}');
-} catch (e) {
-  print('Failed to post message: $e');
-}
+// Listen to events from specific authors
+final subscription = nostrService.listenToEvents(
+  kind: 1,
+  authors: ['pubkey1', 'pubkey2'],
+  limit: 5,
+);
+
+// Listen to events with specific tags
+final subscription = nostrService.listenToEvents(
+  kind: 1,
+  tags: ['bitcoin', 'nostr'],
+  limit: 5,
+);
+
+// Listen to events from a specific time range
+final oneHourAgo = DateTime.now().subtract(Duration(hours: 1));
+final subscription = nostrService.listenToEvents(
+  kind: 1,
+  since: oneHourAgo,
+  limit: 10,
+);
 ```
 
-### 4. Listen to Messages
+### Different Event Kinds
 
 ```dart
-// Listen to all public messages
-final messageStream = nostrService.listenToPublicMessages(limit: 10);
-messageStream.listen((Post post) {
-  print('Received: ${post.content}');
-});
+// Text notes (kind 1)
+nostrService.listenToEvents(kind: 1);
 
-// Listen to messages from specific users
-final userStream = nostrService.listenToUserMessages(['pubkey1', 'pubkey2']);
-userStream.listen((Post post) {
-  print('Message from ${post.userName}: ${post.content}');
-});
+// Profile metadata (kind 0)
+nostrService.listenToEvents(kind: 0);
+
+// Contact list (kind 3)
+nostrService.listenToEvents(kind: 3);
+
+// Encrypted direct messages (kind 4)
+nostrService.listenToEvents(kind: 4);
 ```
 
-### 5. Check Connection Status
+### Cleanup
 
 ```dart
-if (nostrService.isConnected) {
-  print('Connected to relays: ${nostrService.relayUrls}');
-} else {
-  print('Not connected to any relays');
-}
-```
-
-### 6. Get User Information
-
-```dart
-final publicKey = nostrService.getCurrentUserPublicKey();
-if (publicKey != null) {
-  print('Your public key: $publicKey');
-}
-```
-
-### 7. Cleanup
-
-```dart
+// Always disconnect when done
 await nostrService.disconnect();
 ```
 
-## Configuration
+## API Reference
 
-The service uses environment variables for configuration:
+### WebSocketNostrService
 
-- `RELAY_URL`: The Nostr relay URL to connect to (e.g., `wss://relay.damus.io`)
+#### Constructor
+- `WebSocketNostrService(String relayUrl)` - Initialize with relay URL
 
-Make sure to set this in your `.env` file:
+#### Methods
+- `Future<void> connect()` - Connect to the relay
+- `Future<void> disconnect()` - Disconnect from the relay
+- `Stream<NostrEventModel> listenToEvents({...})` - Listen to events with filters
+- `Future<void> publishEvent(NostrEventModel event)` - Publish an event
 
-```
-RELAY_URL=wss://relay.damus.io
-```
+#### Properties
+- `bool isConnected` - Connection status
+- `String relayUrl` - Relay URL
+- `int activeSubscriptions` - Number of active subscriptions
 
-## Key Management
+### listenToEvents Parameters
 
-The service uses the existing `SecureService` for key management:
+- `required int kind` - Event kind to listen for
+- `List<String>? authors` - Filter by author pubkeys
+- `List<String>? tags` - Filter by tags
+- `DateTime? since` - Events after this timestamp
+- `DateTime? until` - Events before this timestamp
+- `int? limit` - Maximum number of events to return
 
-- Credentials must be created first using `SecureService.createCredentials()`
-- Private keys are securely stored using the `SecureService`
-- Public keys can be retrieved for sharing with other users
-- The NostrService will throw an exception if no credentials are found
+## Example
 
-## Error Handling
-
-The service includes comprehensive error handling:
-
-- Connection errors are logged and can be retried
-- Message posting failures are caught and rethrown
-- Invalid relay URLs or network issues are handled gracefully
-
-## Dependencies
-
-- `dart_nostr: ^9.2.2` - Core Nostr functionality
-- `flutter_dotenv: ^6.0.0` - Environment variable management
-- `shared_preferences: ^2.5.3` - Secure key storage
-
-## Notes
-
-- The service uses kind 1 events (text notes) for messaging
-- All timestamps are converted from Unix timestamps to Dart DateTime objects
-- The service automatically handles event signing and verification
-- Connection status is tracked and can be monitored
+See `websocket_nostr_example.dart` for complete usage examples including:
+- Basic event listening
+- Time-based filtering
+- Tag-based filtering
+- Multiple subscription management
