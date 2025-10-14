@@ -49,7 +49,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           brightness: Brightness.dark,
           leading: FlyButton(
             onTap: () => GoRouter.of(context).pop(),
-            variant: ButtonVariant.unstyled,
+            buttonColor: ButtonColor.secondary,
             child: FlyIcon(
               CupertinoIcons.back,
             ).color(FlyColorToken.defaultColor().purple400),

@@ -60,7 +60,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
                 onTap: () {
                   _showCommunitySelection();
                 },
-                variant: ButtonVariant.secondary,
+                buttonColor: ButtonColor.secondary,
                 child: FlyBox(
                   children: [
                     FlyText(

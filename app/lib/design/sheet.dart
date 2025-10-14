@@ -56,7 +56,7 @@ class FlySheet extends StatelessWidget {
                         Navigator.of(context).pop();
                       }
                     },
-                    variant: ButtonVariant.unstyled,
+                    buttonColor: ButtonColor.secondary,
                     child:
                         FlyBox(
                               children: [FlyIcon(Icons.close).color('gray600')],

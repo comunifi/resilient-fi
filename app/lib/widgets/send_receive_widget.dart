@@ -71,7 +71,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                     // Recipient dropdown
                     FlyButton(
                       onTap: () => _showRecipientSelection(transaction),
-                      variant: ButtonVariant.secondary,
+                      buttonColor: ButtonColor.secondary,
                       child: FlyBox(
                         children: [
                           FlyText(
@@ -110,7 +110,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                     // Currency dropdown
                     FlyButton(
                       onTap: () => _showCurrencySelection(transaction),
-                      variant: ButtonVariant.secondary,
+                      buttonColor: ButtonColor.secondary,
                       child: FlyBox(
                         children: [
                           FlyText(
@@ -138,7 +138,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                     _transaction = null;
                   });
                 },
-                variant: ButtonVariant.secondary,
+                buttonColor: ButtonColor.secondary,
                 size: ButtonSize.small,
                 child: FlyIcon(Icons.close).color('gray600').w('s4').h('s4'),
               ),
@@ -160,25 +160,25 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         // Send button (toggles send mode)
         FlyButton(
           onTap: _toggleSend,
-          variant: _mode == 'send'
-              ? ButtonVariant.primary
-              : ButtonVariant.secondary,
+          buttonColor: _mode == 'send'
+              ? ButtonColor.primary
+              : ButtonColor.secondary,
           child: FlyText('Send').text('sm').weight('medium'),
         ),
 
         // Receive button (toggles receive mode)
         FlyButton(
           onTap: _toggleReceive,
-          variant: _mode == 'receive'
-              ? ButtonVariant.primary
-              : ButtonVariant.secondary,
+          buttonColor: _mode == 'receive'
+              ? ButtonColor.primary
+              : ButtonColor.secondary,
           child: FlyText('Receive').text('sm').weight('medium'),
         ),
 
         // Post button (final action)
         FlyButton(
           onTap: _handlePost,
-          variant: ButtonVariant.primary,
+          buttonColor: ButtonColor.primary,
           size: ButtonSize.large,
           child: FlyIcon(Icons.send).color('white').w('s4').h('s4'),
         ),

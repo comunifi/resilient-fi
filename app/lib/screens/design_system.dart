@@ -35,6 +35,61 @@ class DesignSystemScreen extends StatelessWidget {
       // Button Examples
       FlyText('Button Examples').text('xl').weight('bold').color('gray800'),
 
+      // Colors
+      FlyCard(
+        variant: CardVariant.outlined,
+        size: CardSize.medium,
+        children: [
+          FlyText('Colors').text('lg').weight('semibold').color('gray800'),
+          FlyBox(
+            children: [
+              FlyButton(
+                onTap: () => _showAlert(context),
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
+                size: ButtonSize.medium,
+                child: FlyText('Primary'),
+              ),
+              FlyButton(
+                onTap: () {},
+                buttonColor: ButtonColor.secondary,
+                variant: ButtonVariant.solid,
+                size: ButtonSize.medium,
+                child: FlyText('Secondary'),
+              ),
+              FlyButton(
+                onTap: () {},
+                buttonColor: ButtonColor.success,
+                variant: ButtonVariant.solid,
+                size: ButtonSize.medium,
+                child: FlyText('Success'),
+              ),
+              FlyButton(
+                onTap: () {},
+                buttonColor: ButtonColor.error,
+                variant: ButtonVariant.solid,
+                size: ButtonSize.medium,
+                child: FlyText('Danger'),
+              ),
+              FlyButton(
+                onTap: () {},
+                buttonColor: ButtonColor.warning,
+                variant: ButtonVariant.solid,
+                size: ButtonSize.medium,
+                child: FlyText('Warning'),
+              ),
+              FlyButton(
+                onTap: () {},
+                variant: ButtonVariant.none,
+                buttonColor: ButtonColor.none,
+                size: ButtonSize.medium,
+                child: FlyText('Unstyled'),
+              ),
+            ],
+          ).row().items('start').gap('s3').wrap(),
+        ],
+      ),
+
       // Variants
       FlyCard(
         variant: CardVariant.outlined,
@@ -45,33 +100,45 @@ class DesignSystemScreen extends StatelessWidget {
             children: [
               FlyButton(
                 onTap: () => _showAlert(context),
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
-                child: FlyText('Primary'),
+                child: FlyText('Solid'),
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.secondary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.soft,
                 size: ButtonSize.medium,
-                child: FlyText('Secondary'),
+                child: FlyText('Soft'),
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.success,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.outlined,
                 size: ButtonSize.medium,
-                child: FlyText('Success'),
+                child: FlyText('Outlined'),
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.danger,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.dashed,
                 size: ButtonSize.medium,
-                child: FlyText('Danger'),
+                child: FlyText('Dashed'),
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.unstyled,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.ghost,
                 size: ButtonSize.medium,
-                child: FlyText('Unstyled'),
+                child: FlyText('Ghost'),
+              ),
+              FlyButton(
+                onTap: () {},
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.none,
+                size: ButtonSize.medium,
+                child: FlyText('None'),
               ),
             ],
           ).row().items('start').gap('s3').wrap(),
@@ -88,19 +155,22 @@ class DesignSystemScreen extends StatelessWidget {
             children: [
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.small,
                 child: FlyText('Small'),
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 child: FlyText('Medium'),
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.large,
                 child: FlyText('Large'),
               ),
@@ -119,19 +189,22 @@ class DesignSystemScreen extends StatelessWidget {
             children: [
               FlyButton(
                 onTap: () => _showAlert(context),
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 child: FlyText('Normal'),
               ),
               FlyButton(
                 onTap: null,
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 child: FlyText('Disabled'),
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 isLoading: true,
                 child: FlyText('Loading'),
@@ -151,7 +224,8 @@ class DesignSystemScreen extends StatelessWidget {
             children: [
               FlyButton(
                 onTap: () => _showAlert(context),
-                variant: ButtonVariant.primary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 children: [
                   FlyIcon(Icons.star).color('white'),
@@ -162,7 +236,8 @@ class DesignSystemScreen extends StatelessWidget {
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.secondary,
+                buttonColor: ButtonColor.secondary,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 children: [
                   FlyIcon(Icons.download).color('white'),
@@ -173,7 +248,8 @@ class DesignSystemScreen extends StatelessWidget {
               ),
               FlyButton(
                 onTap: () {},
-                variant: ButtonVariant.success,
+                buttonColor: ButtonColor.success,
+                variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 children: [
                   FlyIcon(Icons.check).color('white'),
@@ -339,7 +415,8 @@ class DesignSystemScreen extends StatelessWidget {
                       FlyText('Footer').text('xs').color('gray500'),
                       FlyButton(
                         onTap: () {},
-                        variant: ButtonVariant.secondary,
+                        buttonColor: ButtonColor.secondary,
+                        variant: ButtonVariant.solid,
                         size: ButtonSize.small,
                         child: FlyText('Action'),
                       ),
@@ -396,7 +473,8 @@ class DesignSystemScreen extends StatelessWidget {
                       ).col().items('start').gap('s1').flex(1),
                       FlyButton(
                         onTap: () {},
-                        variant: ButtonVariant.unstyled,
+                        buttonColor: ButtonColor.secondary,
+                        variant: ButtonVariant.solid,
                         size: ButtonSize.small,
                         child: FlyIcon(Icons.more_vert).color('gray500'),
                       ),
@@ -414,7 +492,8 @@ class DesignSystemScreen extends StatelessWidget {
                       FlyText('2 min read').text('xs').color('gray500'),
                       FlyButton(
                         onTap: () {},
-                        variant: ButtonVariant.secondary,
+                        buttonColor: ButtonColor.secondary,
+                        variant: ButtonVariant.solid,
                         size: ButtonSize.small,
                         child: FlyText('Read More'),
                       ),

@@ -128,13 +128,13 @@ class PostCard extends FlyCard {
           children: [
             FlyButton(
               onTap: onShare,
-              variant: ButtonVariant.unstyled,
+              buttonColor: ButtonColor.secondary,
               size: ButtonSize.small,
               child: FlyIcon(Icons.share).color('gray500'),
             ),
             FlyButton(
               onTap: onMore,
-              variant: ButtonVariant.unstyled,
+              buttonColor: ButtonColor.secondary,
               size: ButtonSize.small,
               child: FlyIcon(Icons.more_vert).color('gray500'),
             ),
@@ -157,7 +157,7 @@ class PostCard extends FlyCard {
                 // Like button
                 FlyButton(
                   onTap: onLike,
-                  variant: ButtonVariant.postAction,
+                  buttonColor: ButtonColor.secondary,
                   size: ButtonSize.small,
                   children: [
                     FlyIcon(Icons.favorite).color('#ef4444'),
@@ -170,7 +170,7 @@ class PostCard extends FlyCard {
                 // Dislike button
                 FlyButton(
                   onTap: onDislike,
-                  variant: ButtonVariant.postAction,
+                  buttonColor: ButtonColor.secondary,
                   size: ButtonSize.small,
                   children: [
                     FlyIcon(Icons.close).color('#6b7280'),
@@ -187,7 +187,7 @@ class PostCard extends FlyCard {
               children: [
                 FlyButton(
                   onTap: onComment,
-                  variant: ButtonVariant.postAction,
+                  buttonColor: ButtonColor.secondary,
                   size: ButtonSize.small,
                   children: [
                     FlyIcon(Icons.chat_bubble_outline).color('#6b7280'),

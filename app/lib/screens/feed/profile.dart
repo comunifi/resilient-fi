@@ -63,7 +63,7 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
                   onTap: () {
                     // Handle star action
                   },
-                  variant: ButtonVariant.secondary,
+                  buttonColor: ButtonColor.secondary,
                   size: ButtonSize.small,
                   child: FlyIcon(Icons.star_border).color('gray800'),
                 ),
@@ -71,7 +71,7 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
                   onTap: () {
                     // Handle share action
                   },
-                  variant: ButtonVariant.secondary,
+                  buttonColor: ButtonColor.secondary,
                   size: ButtonSize.small,
                   child: FlyIcon(Icons.share).color('gray800'),
                 ),
@@ -79,7 +79,7 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
                   onTap: () {
                     // Handle download action
                   },
-                  variant: ButtonVariant.secondary,
+                  buttonColor: ButtonColor.secondary,
                   size: ButtonSize.small,
                   child: FlyIcon(Icons.download).color('gray800'),
                 ),
@@ -140,7 +140,7 @@ class _DraggableProfileScreenState extends State<DraggableProfileScreen> {
           selectedTab = index;
         });
       },
-      variant: isSelected ? ButtonVariant.secondary : ButtonVariant.unstyled,
+      buttonColor: isSelected ? ButtonColor.secondary : ButtonColor.secondary,
       child: FlyText(text)
           .text('sm')
           .weight(isSelected ? 'medium' : 'normal')

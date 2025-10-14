@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/design/avatar.dart';
 import 'package:app/design/button.dart';
 import 'package:app/models/post.dart';
+import 'package:app/screens/design_system.dart';
 import 'package:app/screens/feed/new_post.dart';
 import 'package:app/screens/feed/profile.dart';
 import 'package:app/state/feed.dart';
@@ -86,6 +87,20 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     await _feedState.createPost(content);
   }
 
+  void handleDesignSystem() {
+    print('🎨 handleDesignSystem() called!'); // Enhanced debug output
+    try {
+      Navigator.of(context).push(
+        CupertinoPageRoute(
+          builder: (context) => const DesignSystemScreen(),
+        ),
+      );
+      print('✅ Navigation to DesignSystemScreen initiated');
+    } catch (e) {
+      print('❌ Error navigating to DesignSystemScreen: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final feedState = context.watch<FeedState>();
@@ -100,7 +115,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
         brightness: Brightness.dark,
         trailing: FlyButton(
           onTap: handleProfile,
-          variant: ButtonVariant.unstyled,
+          buttonColor: ButtonColor.secondary,
           child: FlyAvatar(
             size: AvatarSize.xs,
             shape: AvatarShape.circular,
@@ -155,16 +170,44 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
             Positioned(
               bottom: 20,
               right: 20,
-              child:
-                  FlyButton(
-                        onTap: handleCreatePost,
-                        variant: ButtonVariant.unstyled,
-                        child: FlyIcon(Icons.add).color('white'),
-                      )
-                      .w(60)
-                      .h(60)
-                      .rounded('999px')
-                      .bg(CupertinoTheme.of(context).primaryColor),
+              child: FlyButton(
+                onTap: handleCreatePost,
+                buttonColor: ButtonColor.secondary,
+                width: 60,
+                height: 60,
+                flyStyle: FlyStyle(
+                  rounded: '999px',
+                  bg: CupertinoTheme.of(context).primaryColor,
+                ),
+                child: FlyIcon(Icons.add).color('white'),
+              ),
+            ),
+            // Temporary design system button for testing
+            Positioned(
+              bottom: 20,
+              left: 20,
+              child: CupertinoButton(
+                onPressed: () {
+                  print('Design system button tapped from FAB!');
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(
+                      builder: (context) => const DesignSystemScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Icon(
+                    Icons.palette,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

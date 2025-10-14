@@ -47,7 +47,7 @@ class LandingScreen extends StatelessWidget {
             // Bottom button
             FlyButton(
               onTap: () => handleGetStarted(context),
-              variant: ButtonVariant.primary,
+              buttonColor: ButtonColor.primary,
               size: ButtonSize.large,
               child: FlyText(
                 'Get Started',
