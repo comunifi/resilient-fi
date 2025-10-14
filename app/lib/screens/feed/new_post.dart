@@ -60,6 +60,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
                 onTap: () {
                   _showCommunitySelection();
                 },
+                variant: ButtonVariant.ghost,
                 buttonColor: ButtonColor.secondary,
                 child: FlyBox(
                   children: [
@@ -73,7 +74,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
                 ).row().items('center').gap('s1'),
               ),
             ],
-          ).px('s4').py('s2').mb('s4'),
+          ).mb('s4'),
 
           // Text input area
           FlyBox(
@@ -87,12 +88,6 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
                   padding: const EdgeInsets.all(16),
                 ),
               )
-              .bg('purple50')
-              .rounded('lg')
-              .border(1)
-              .borderColor('purple200')
-              .px('s4')
-              .py('s3')
               .mb('s4'),
 
           // Send and Receive mechanism

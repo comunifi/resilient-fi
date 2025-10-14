@@ -131,13 +131,21 @@ class FlyButton extends FlyGestureDetector {
       case ButtonVariant.outlined:
         // Transparent background, solid border, colored text
         bgColor = 'transparent';
-        textColor = borderColor ?? 'black';
+        if (buttonColor == ButtonColor.secondary) {
+          textColor = 'gray700'; // Darker text for secondary outlined
+        } else {
+          textColor = borderColor ?? 'black';
+        }
         break;
       case ButtonVariant.dashed:
         // Transparent background, dashed border, colored text
         bgColor = 'transparent';
         borderStyle = 'dashed';
-        textColor = borderColor ?? 'black';
+        if (buttonColor == ButtonColor.secondary) {
+          textColor = 'gray700'; // Darker text for secondary dashed
+        } else {
+          textColor = borderColor ?? 'black';
+        }
         break;
       case ButtonVariant.ghost:
         // Transparent background, no border, subtle text

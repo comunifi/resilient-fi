@@ -200,7 +200,8 @@ class PostCard extends FlyCard {
             ).row(),
           ],
         )
-        // TODO figure out why .jusify(space-between) doesn't work
+        // TODO: figure out why .jusify(space-between) doesn't work
+        // look at .justify('between')
         .row(mainAxisAlignment: MainAxisAlignment.spaceBetween)
         .justify('space-between')
         .gap('s4');

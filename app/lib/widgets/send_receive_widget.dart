@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../design/button.dart';
 
@@ -52,7 +52,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                       children: [
                         FlyBox(
                               child: FlyIcon(
-                                isSend ? Icons.send : Icons.call_received,
+                                isSend ? LucideIcons.arrowUpRight : LucideIcons.arrowDownLeft,
                               ).color('gray600').w('s4').h('s4'),
                             )
                             .w('s8')
@@ -78,7 +78,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                             transaction.recipient,
                           ).text('sm').weight('medium').color('gray900'),
                           FlyIcon(
-                            Icons.keyboard_arrow_down,
+                            LucideIcons.chevronDown,
                           ).color('gray600').w('s3').h('s3'),
                         ],
                       ).row().items('center').gap('s1'),
@@ -117,7 +117,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                             transaction.currency,
                           ).text('sm').weight('medium').color('gray900'),
                           FlyIcon(
-                            Icons.keyboard_arrow_down,
+                            LucideIcons.chevronDown,
                           ).color('gray600').w('s3').h('s3'),
                         ],
                       ).row().items('center').gap('s1'),
@@ -140,7 +140,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                 },
                 buttonColor: ButtonColor.secondary,
                 size: ButtonSize.small,
-                child: FlyIcon(Icons.close).color('gray600').w('s4').h('s4'),
+                child: FlyIcon(LucideIcons.x).color('gray600').w('s4').h('s4'),
               ),
             ),
           ],
@@ -158,32 +158,45 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
     return FlyBox(
       children: [
         // Send button (toggles send mode)
-        FlyButton(
-          onTap: _toggleSend,
-          buttonColor: _mode == 'send'
-              ? ButtonColor.primary
-              : ButtonColor.secondary,
-          child: FlyText('Send').text('sm').weight('medium'),
-        ),
+        FlyBox(
+          children: [
+          FlyButton(
+            onTap: _toggleSend,
+            buttonColor: _mode == 'send'
+                ? ButtonColor.primary
+                : ButtonColor.secondary,
+            variant: ButtonVariant.outlined,
+            children: [
+              FlyIcon(LucideIcons.arrowUpRight).w('s4').h('s4'),
+              FlyText('Send').text('sm').weight('medium'),
+            ],
+          ),
 
-        // Receive button (toggles receive mode)
-        FlyButton(
-          onTap: _toggleReceive,
-          buttonColor: _mode == 'receive'
-              ? ButtonColor.primary
-              : ButtonColor.secondary,
-          child: FlyText('Receive').text('sm').weight('medium'),
-        ),
+          // Receive button (toggles receive mode)
+          FlyButton(
+            onTap: _toggleReceive,
+            buttonColor: _mode == 'receive'
+                ? ButtonColor.primary
+                : ButtonColor.secondary,
+            variant: ButtonVariant.outlined,
+            children: [
+              FlyIcon(LucideIcons.arrowDownLeft).w('s4').h('s4'),
+              FlyText('Receive').text('sm').weight('medium'),
+            ],
+          ),
+          ],
+        ).row().gap('s3'),
 
         // Post button (final action)
         FlyButton(
           onTap: _handlePost,
+          variant: ButtonVariant.solid,
           buttonColor: ButtonColor.primary,
           size: ButtonSize.large,
-          child: FlyIcon(Icons.send).color('white').w('s4').h('s4'),
+          child: FlyIcon(LucideIcons.send).w('s4').h('s4'),
         ),
       ],
-    ).row().items('center').gap('s3').justify('space-between');
+    ).row().items('center').gap('s3').justify('between');
   }
 
   void _toggleSend() {

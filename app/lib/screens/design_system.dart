@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../design/avatar.dart';
 import '../design/button.dart';
@@ -228,7 +229,7 @@ class DesignSystemScreen extends StatelessWidget {
                 variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 children: [
-                  FlyIcon(Icons.star).color('white'),
+                  FlyIcon(LucideIcons.star).color('white'),
                   FlyText(
                     'Star Button',
                   ).color('white').text('sm').weight('medium'),
@@ -240,7 +241,7 @@ class DesignSystemScreen extends StatelessWidget {
                 variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 children: [
-                  FlyIcon(Icons.download).color('white'),
+                  FlyIcon(LucideIcons.download).color('white'),
                   FlyText(
                     'Download',
                   ).color('white').text('sm').weight('medium'),
@@ -252,7 +253,7 @@ class DesignSystemScreen extends StatelessWidget {
                 variant: ButtonVariant.solid,
                 size: ButtonSize.medium,
                 children: [
-                  FlyIcon(Icons.check).color('white'),
+                  FlyIcon(LucideIcons.check).color('white'),
                   FlyText('Confirm').color('white').text('sm').weight('medium'),
                 ],
               ),
@@ -476,7 +477,7 @@ class DesignSystemScreen extends StatelessWidget {
                         buttonColor: ButtonColor.secondary,
                         variant: ButtonVariant.solid,
                         size: ButtonSize.small,
-                        child: FlyIcon(Icons.more_vert).color('gray500'),
+                        child: FlyIcon(LucideIcons.moreVertical).color('gray500'),
                       ),
                     ],
                   ).row().items('center').gap('s3').p('s4'),

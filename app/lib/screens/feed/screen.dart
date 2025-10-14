@@ -136,17 +136,15 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                 CupertinoSliverRefreshControl(
                   onRefresh: handleRefresh,
                 ), // the Future returned by the function is what makes the spinner go away
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    childCount: posts.length + (isLoadingMore ? 1 : 0),
-                    (context, index) {
-                      // Show loading indicator at the bottom
-                      if (index == posts.length) {
-                        return _buildLoadingIndicator();
-                      }
-                      return _buildPostCard(posts[index]);
-                    },
-                  ),
+                SliverToBoxAdapter(
+                  child: FlyBox(
+                    children: [
+                      // Build all post cards
+                      ...posts.map((post) => _buildPostCard(post)),
+                      // Show loading indicator at the bottom if loading more
+                      if (isLoadingMore) _buildLoadingIndicator(),
+                    ],
+                  ).col().gap('s4').px('s4'),
                 ),
                 // Show "no more posts" message if we've reached the end
                 if (!hasMorePosts && posts.isNotEmpty)
