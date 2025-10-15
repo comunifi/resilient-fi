@@ -131,7 +131,7 @@ class FeedState extends ChangeNotifier {
       upsertPosts(historicalPosts);
 
       // Add some mock posts with transactions for testing
-      _addMockPostsWithTransactions();
+      // _addMockPostsWithTransactions();
 
       // If we got less than 20 posts, we've reached the end
       if (historicalPosts.length < limit) {
@@ -143,7 +143,7 @@ class FeedState extends ChangeNotifier {
       debugPrint('Error loading posts: $e');
       // Fallback to mock posts for development
       posts.clear();
-      _addMockPostsWithTransactions();
+      // _addMockPostsWithTransactions();
       safeNotifyListeners();
     }
 
@@ -190,7 +190,7 @@ class FeedState extends ChangeNotifier {
       upsertPosts(historicalPosts);
 
       // Add some mock posts with transactions for testing
-      _addMockPostsWithTransactions();
+      // _addMockPostsWithTransactions();
 
       // If we got less than limit posts, we've reached the end
       if (historicalPosts.length < limit) {
@@ -206,7 +206,7 @@ class FeedState extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error refreshing posts: $e');
       // Fallback to mock posts for development
-      _addMockPostsWithTransactions();
+      // _addMockPostsWithTransactions();
       safeNotifyListeners();
     }
   }

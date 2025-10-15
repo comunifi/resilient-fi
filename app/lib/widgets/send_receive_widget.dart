@@ -89,7 +89,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
               ],
             ).row().items('center').gap('s2').justify('between'),
 
-            // Second row: Amount input and currency dropdown
+            // Second row: Amount input with currency display
             FlyBox(
               children: [
                 FlyText('amount').text('sm').color('gray600'),
@@ -113,22 +113,12 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                       ),
                     ).w('s16').h('s8').bg('white').rounded('sm').px('s2').border(1).borderColor('gray200'),
 
-                    // Currency dropdown
-                    FlyButton(
-                      onTap: () => _showCurrencySelection(transaction),
-                      variant: ButtonVariant.outlined,
-                      buttonColor: ButtonColor.secondary,
-                      child: FlyBox(
-                        children: [
-                          FlyText(
-                            transaction.currency,
-                          ).text('sm').weight('medium').color('gray900'),
-                          FlyIcon(
-                            LucideIcons.chevronDown,
-                          ).color('gray600').w('s3').h('s3'),
-                        ],
-                      ).row().items('center').gap('s1'),
-                    ),
+                    // Currency display (non-interactive)
+                    FlyBox(
+                      child: FlyText(
+                        transaction.currency,
+                      ).text('sm').weight('medium').color('gray900'),
+                    ).px('s3').py('s2').bg('gray100').rounded('sm'),
                   ],
                 ).row().items('center').gap('s2'),
               ],
@@ -260,49 +250,6 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
     );
   }
 
-  void _showCurrencySelection(TransactionEntry transaction) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: FlyText(
-          'Select Currency',
-        ).text('lg').weight('bold').color('gray900'),
-        actions: [
-          CupertinoActionSheetAction(
-            child: FlyText('USDC').color('purple600'),
-            onPressed: () {
-              setState(() {
-                transaction.currency = 'USDC';
-              });
-              Navigator.pop(context);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: FlyText('USDT').color('purple600'),
-            onPressed: () {
-              setState(() {
-                transaction.currency = 'USDT';
-              });
-              Navigator.pop(context);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: FlyText('ETH').color('purple600'),
-            onPressed: () {
-              setState(() {
-                transaction.currency = 'ETH';
-              });
-              Navigator.pop(context);
-            },
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: FlyText('Cancel').color('red600'),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-    );
-  }
 
   void _handlePost() {
     if (_mode == 'none') {

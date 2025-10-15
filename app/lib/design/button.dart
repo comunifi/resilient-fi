@@ -75,9 +75,9 @@ class FlyButton extends FlyGestureDetector {
     // Determine base colors based on buttonColor
     switch (buttonColor) {
       case ButtonColor.primary:
-        bgColor = 'purple500';
+        bgColor = 'teal500';
         textColor = 'white';
-        borderColor = 'purple500';
+        borderColor = 'teal500';
         break;
       case ButtonColor.secondary:
         bgColor = 'gray100';

@@ -60,7 +60,7 @@ class _MainAppState extends State<MainApp> {
           debugShowCheckedModeBanner: false,
           title: 'Comunifi',
           theme: CupertinoThemeData(
-            primaryColor: const Color(0xFF7c5cbd), // Purple theme
+            primaryColor: const Color(0xFF009686), // Purple theme
             brightness: Brightness.light,
           ),
           routerConfig: router,

@@ -1,16 +1,20 @@
 import 'dart:async';
 
 import 'package:app/design/button.dart';
+import 'package:app/design/avatar.dart';
+import 'package:app/design/avatar_blockies.dart';
 import 'package:app/models/post.dart';
 import 'package:app/screens/design_system.dart';
 import 'package:app/screens/feed/new_post.dart';
 import 'package:app/state/feed.dart';
+import 'package:app/utils/address.dart';
 import 'package:app/widgets/post_card.dart';
 import 'package:app/widgets/transaction_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 class SocialFeedScreen extends StatefulWidget {
@@ -99,85 +103,104 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     final isLoadingMore = feedState.isLoadingMore;
 
     return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: CupertinoColors.systemBackground,
+        border: const Border(
+          bottom: BorderSide(
+            color: CupertinoColors.separator,
+            width: 0.5,
+          ),
+        ),
+        leading: Container(
+          width: 60,
+          child: FlyBox(
+            children: [
+              FlyIcon(LucideIcons.shield).w('s3').h('s3').color('green600'),
+              FlyText('Tor').text('xs').weight('bold').color('green600'),
+            ],
+          ).row().items('center').gap('s1').px('s1').py('s1').bg('green50').rounded('sm').border(1).borderColor('green200'),
+        ),
+        trailing: FlyAvatar(
+          size: AvatarSize.sm,
+          shape: AvatarShape.circular,
+          child: FlyAvatarBlockies(
+            address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
+            size: AvatarSize.sm,
+            shape: AvatarShape.circular,
+            fallbackText: AddressUtils.getAddressInitials('0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'),
+          ),
+        ),
+      ),
       child: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            CustomScrollView(
-              controller: _scrollController,
-              scrollBehavior: const CupertinoScrollBehavior(),
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                CupertinoSliverRefreshControl(
-                  onRefresh: handleRefresh,
-                ), // the Future returned by the function is what makes the spinner go away
-                SliverToBoxAdapter(
-                  child: FlyBox(
-                    children: [
-                      // Build all post cards
-                      ...posts.map((post) => _buildPostCard(post)),
-                      // Show loading indicator at the bottom if loading more
-                      if (isLoadingMore) _buildLoadingIndicator(),
-                    ],
-                  ).col().gap('s4').px('s4').py('s4'),
-                ),
-                // Show "no posts posted" message if there are no posts at all
-                if (posts.isEmpty)
-                  SliverFillRemaining(
-                    child: Center(
-                      child: Text(
-                        'No posts found',
-                        style: TextStyle(
-                          color: CupertinoColors.systemGrey,
-                          fontSize: 14,
+            // Scrollable content area
+            Expanded(
+              child: CustomScrollView(
+                controller: _scrollController,
+                scrollBehavior: const CupertinoScrollBehavior(),
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: handleRefresh,
+                  ), // the Future returned by the function is what makes the spinner go away
+                  SliverToBoxAdapter(
+                    child: FlyBox(
+                      children: [
+                        // Build all post cards
+                        ...posts.map((post) => _buildPostCard(post)),
+                        // Show loading indicator at the bottom if loading more
+                        if (isLoadingMore) _buildLoadingIndicator(),
+                      ],
+                    ).col().gap('s4').px('s4').py('s4'),
+                  ),
+                  // Show "no posts posted" message if there are no posts at all
+                  if (posts.isEmpty)
+                    SliverFillRemaining(
+                      child: Center(
+                        child: Text(
+                          'No posts found',
+                          style: TextStyle(
+                            color: CupertinoColors.systemGrey,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            // Floating action button for new post
-            Positioned(
-              bottom: 20,
-              right: 20,
-              child: FlyButton(
-                onTap: handleCreatePost,
-                buttonColor: ButtonColor.primary,
-                variant: ButtonVariant.solid,
-                width: 60,
-                height: 60,
-                flyStyle: FlyStyle(
-                  rounded: 'xl',
-                ),
-                child: FlyIcon(Icons.add).color('white'),
+                ],
               ),
             ),
-            // Temporary design system button for testing
-            // Positioned(
-            //   bottom: 20,
-            //   left: 20,
-            //   child: CupertinoButton(
-            //     onPressed: () {
-            //       print('Design system button tapped from FAB!');
-            //       Navigator.of(context).push(
-            //         CupertinoPageRoute(
-            //           builder: (context) => const DesignSystemScreen(),
-            //         ),
-            //       );
-            //     },
-            //     child: Container(
-            //       width: 60,
-            //       height: 60,
-            //       decoration: BoxDecoration(
-            //         color: Colors.blue,
-            //         borderRadius: BorderRadius.circular(30),
-            //       ),
-            //       child: const Icon(
-            //         Icons.palette,
-            //         color: Colors.white,
-            //       ),
-            //     ),
-            //   ),
-            // ),
+            // Fixed footer with balance and add button
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(
+                    color: CupertinoColors.separator,
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: FlyBox(
+                children: [
+                  // Balance card
+                  FlyBox(
+                    children: [
+                      FlyText('balance').text('xs').color('gray600'),
+                      FlyText('45.6 USDC').text('lg').weight('bold').color('gray900'),
+                    ],
+                  ).col().gap('s1').px('s3').py('s2').bg('white').rounded('lg'),
+                  
+                  // Add button
+                  FlyButton(
+                    onTap: handleCreatePost,
+                    buttonColor: ButtonColor.primary,
+                    variant: ButtonVariant.solid,
+                    child: FlyIcon(LucideIcons.plus).color('white'),
+                  ),
+                ],
+              ).row().items('center').justify('between').px('s4').py('s3'),
+            ),
           ],
         ),
       ),
