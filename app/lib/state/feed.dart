@@ -310,47 +310,26 @@ class FeedState extends ChangeNotifier {
     // Mock post 1: Request Pending with action button
     final pendingRequestPost = Post(
       id: 'mock_pending_${now.millisecondsSinceEpoch}',
-      userName: 'John Smith',
-      userId: 'john123',
+      userName: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+      userId: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
       content: 'Requesting \$299 for software license refund. Community admin please review.',
-      userInitials: 'JS',
+      userInitials: '0x74',
       likeCount: 5,
       dislikeCount: 0,
       commentCount: 3,
       transaction: Transaction(
-        senderName: 'John Smith',
+        senderName: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
         amount: '299.00 USDC',
         timeAgo: 'Pending',
-        senderInitials: 'JS',
+        senderInitials: '0x74',
       ),
       createdAt: now.subtract(const Duration(minutes: 30)),
       updatedAt: now.subtract(const Duration(minutes: 30)),
     );
 
-    // Mock post 2: Request Complete without action button
-    final completedRequestPost = Post(
-      id: 'mock_complete_${now.millisecondsSinceEpoch + 1}',
-      userName: 'Gordon Freeman',
-      userId: 'gordon456',
-      content: 'Previous request has been fulfilled. Thanks community!',
-      userInitials: 'GF',
-      likeCount: 8,
-      dislikeCount: 0,
-      commentCount: 2,
-      transaction: Transaction(
-        senderName: 'Gordon Freeman',
-        amount: '150.00 USDC',
-        timeAgo: 'Complete',
-        senderInitials: 'GF',
-      ),
-      createdAt: now.subtract(const Duration(hours: 2)),
-      updatedAt: now.subtract(const Duration(hours: 2)),
-    );
-
     // Add mock posts to the list
     posts.addAll([
       pendingRequestPost,
-      completedRequestPost,
     ]);
     
     // Sort posts by creation date (most recent first)

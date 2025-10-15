@@ -4,16 +4,14 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../design/button.dart';
 import '../design/card.dart';
-import '../screens/feed/new_post.dart';
+import '../utils/address.dart';
 
 class SendReceiveWidget extends StatefulWidget {
   final Function() onPost;
-  final PrefilledTransaction? prefilledTransaction;
 
   const SendReceiveWidget({
     super.key, 
     required this.onPost,
-    this.prefilledTransaction,
   });
 
   @override
@@ -28,15 +26,6 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
   @override
   void initState() {
     super.initState();
-    // If there's a prefilled transaction, set up send mode
-    if (widget.prefilledTransaction != null) {
-      _mode = 'send';
-      _transaction = TransactionEntry(
-        recipient: widget.prefilledTransaction!.recipient,
-        amount: widget.prefilledTransaction!.amount,
-        currency: widget.prefilledTransaction!.currency,
-      );
-    }
   }
 
   @override
@@ -89,7 +78,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                   child: FlyBox(
                     children: [
                       FlyText(
-                        transaction.recipient,
+                        AddressUtils.truncateAddress(transaction.recipient),
                       ).text('sm').weight('medium').color('gray900'),
                       FlyIcon(
                         LucideIcons.chevronDown,
@@ -154,34 +143,34 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
     return FlyBox(
       children: [
         // Send button (toggles send mode)
-        FlyBox(
-          children: [
-          FlyButton(
-            onTap: _toggleSend,
-            buttonColor: _mode == 'send'
-                ? ButtonColor.primary
-                : ButtonColor.secondary,
-            variant: ButtonVariant.outlined,
-            children: [
-              FlyIcon(LucideIcons.arrowUpRight).w('s4').h('s4'),
-              FlyText('Send').text('sm').weight('medium'),
-            ],
-          ),
+        // FlyBox(
+        //   children: [
+        //   FlyButton(
+        //     onTap: _toggleSend,
+        //     buttonColor: _mode == 'send'
+        //         ? ButtonColor.primary
+        //         : ButtonColor.secondary,
+        //     variant: ButtonVariant.outlined,
+        //     children: [
+        //       FlyIcon(LucideIcons.arrowUpRight).w('s4').h('s4'),
+        //       FlyText('Send').text('sm').weight('medium'),
+        //     ],
+        //   ),
 
-          // Receive button (toggles receive mode)
-          FlyButton(
-            onTap: _toggleReceive,
-            buttonColor: _mode == 'receive'
-                ? ButtonColor.primary
-                : ButtonColor.secondary,
-            variant: ButtonVariant.outlined,
-            children: [
-              FlyIcon(LucideIcons.arrowDownLeft).w('s4').h('s4'),
-              FlyText('Receive').text('sm').weight('medium'),
-            ],
-          ),
+        // Receive button (toggles receive mode)
+        FlyButton(
+          onTap: _toggleReceive,
+          buttonColor: _mode == 'receive'
+              ? ButtonColor.primary
+              : ButtonColor.secondary,
+          variant: ButtonVariant.outlined,
+          children: [
+            FlyIcon(LucideIcons.arrowDownLeft).w('s4').h('s4'),
+            FlyText('Receive').text('sm').weight('medium'),
           ],
-        ).row().gap('s3'),
+        ),
+        // ],
+        // ).row().gap('s3'),
 
         // Post button (final action)
         FlyButton(
@@ -203,7 +192,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
       } else {
         _mode = 'send';
         _transaction = TransactionEntry(
-          recipient: 'John Smith',
+          recipient: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
           amount: 20,
           currency: 'USDC',
         );
@@ -219,7 +208,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
       } else {
         _mode = 'receive';
         _transaction = TransactionEntry(
-          recipient: 'John Smith',
+          recipient: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
           amount: 20,
           currency: 'USDC',
         );
@@ -236,28 +225,28 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         ).text('lg').weight('bold').color('gray900'),
         actions: [
           CupertinoActionSheetAction(
-            child: FlyText('John Smith').color('purple600'),
+            child: FlyText('0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6').color('purple600'),
             onPressed: () {
               setState(() {
-                transaction.recipient = 'John Smith';
+                transaction.recipient = '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6';
               });
               Navigator.pop(context);
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('Jane Doe').color('purple600'),
+            child: FlyText('0x8ba1f109551bD432803012645Hac136c22C23').color('purple600'),
             onPressed: () {
               setState(() {
-                transaction.recipient = 'Jane Doe';
+                transaction.recipient = '0x8ba1f109551bD432803012645Hac136c22C23';
               });
               Navigator.pop(context);
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('Bob Wilson').color('purple600'),
+            child: FlyText('0x9cA855777E6bd8449c34765C7012CEe4B27F75d').color('purple600'),
             onPressed: () {
               setState(() {
-                transaction.recipient = 'Bob Wilson';
+                transaction.recipient = '0x9cA855777E6bd8449c34765C7012CEe4B27F75d';
               });
               Navigator.pop(context);
             },

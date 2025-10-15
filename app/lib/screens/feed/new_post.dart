@@ -6,25 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../../design/sheet.dart';
 import '../../widgets/send_receive_widget.dart';
 
-class PrefilledTransaction {
-  final String recipient;
-  final double amount;
-  final String currency;
-
-  PrefilledTransaction({
-    required this.recipient,
-    required this.amount,
-    required this.currency,
-  });
-}
-
 class SimpleNewPostScreen extends StatefulWidget {
   const SimpleNewPostScreen({
     super.key,
-    this.prefilledTransaction,
   });
-
-  final PrefilledTransaction? prefilledTransaction;
 
   @override
   State<SimpleNewPostScreen> createState() => _SimpleNewPostScreenState();
@@ -85,7 +70,6 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
           // Send and Receive mechanism
           SendReceiveWidget(
             onPost: _handlePost,
-            prefilledTransaction: widget.prefilledTransaction,
           ),
         ],
       ).col().px('s4'),

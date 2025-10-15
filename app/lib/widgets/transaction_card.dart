@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -146,18 +147,19 @@ class TransactionCard extends FlyCardWithHeader {
                     FlyAvatar(
                       size: AvatarSize.sm,
                       shape: AvatarShape.circular,
-                      children: [
-                        FlyAvatarFallback(
-                          fallbackText: 'GF',
-                        ),
-                      ],
+                      child: FlyAvatarBlockies(
+                        address: '0x8ba1f109551bD432803012645Hac136c22C23',
+                        size: AvatarSize.sm,
+                        shape: AvatarShape.circular,
+                        fallbackText: AddressUtils.getAddressInitials('0x8ba1f109551bD432803012645Hac136c22C23'),
+                      ),
                     ),
                     
                     // Text labels stacked vertically
                     FlyBox(
                       children: [
                         FlyText('to').text('xs').color('gray600'),
-                        FlyText('Gordon Freem...').text('sm').weight('medium'),
+                        FlyText(AddressUtils.truncateAddress('0x8ba1f109551bD432803012645Hac136c22C23')).text('sm').weight('medium'),
                       ],
                     ).col().items('start'),
                   ],
@@ -188,7 +190,7 @@ class TransactionCard extends FlyCardWithHeader {
             // Action button for pending requests only
             if (status == 'Request Pending') ...[
               FlyButton(
-                onTap: onFulfillRequest,
+                onTap: () => _showFulfillConfirmation(context),
                 variant: ButtonVariant.solid,
                 buttonColor: ButtonColor.primary,
                 child: FlyText('Fulfill Request').text('sm').weight('bold').color('white'),
@@ -198,6 +200,37 @@ class TransactionCard extends FlyCardWithHeader {
         ).p('s3'),
       ],
     ).col();
+  }
+
+  void _showFulfillConfirmation(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: FlyText('Confirm Transfer')
+            .text('lg')
+            .weight('bold')
+            .color('gray900'),
+        content: FlyText('Are you sure you want to transfer $amount to $senderName?')
+            .color('gray700'),
+        actions: [
+          CupertinoDialogAction(
+            child: FlyText('Cancel').color('gray600'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            child: FlyText('Transfer').color('purple600'),
+            onPressed: () {
+              Navigator.pop(context);
+              print('Transfer confirmed: $amount to $senderName');
+              // Call the original callback if provided
+              if (onFulfillRequest != null) {
+                onFulfillRequest!();
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override

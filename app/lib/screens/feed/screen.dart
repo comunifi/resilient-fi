@@ -211,24 +211,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                 // Handle delete action
                 print('Delete tapped on transaction card');
               },
-              onFulfillRequest: () async {
-                // Open new post screen with pre-filled send data
-                final content = await showCupertinoModalPopup<String?>(
-                  context: context,
-                  builder: (context) => SimpleNewPostScreen(
-                    prefilledTransaction: PrefilledTransaction(
-                      recipient: post.transaction!.senderName,
-                      amount: double.parse(post.transaction!.amount.replaceAll(RegExp(r'[^\d.]'), '')),
-                      currency: post.transaction!.amount.split(' ').last,
-                    ),
-                  ),
-                );
-
-                if (content == null || content.isEmpty) {
-                  return;
-                }
-
-                await _feedState.createPost(content);
+              onFulfillRequest: () {
+                // Print callback for fulfill request
+                print('Fulfill request callback triggered for ${post.transaction!.senderName}');
               },
             )
           : null,
