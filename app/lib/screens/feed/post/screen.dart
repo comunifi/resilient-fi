@@ -140,8 +140,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   Widget _buildMainPost(Post post) {
     final postCard = PostCard(
+      userAddress: post.userId, // Using userId as the user's public key/address
       userName: post.userName,
-      userId: post.userId,
       content: post.content,
       userAvatarUrl: post.userAvatarUrl,
       userInitials: post.userInitials,
@@ -151,6 +151,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
       transaction: post.transaction != null
           ? TransactionCard(
               senderName: post.transaction!.senderName,
+              senderAddress: post.userId, // Use the post author's address as sender address
               amount: post.transaction!.amount,
               timeAgo: post.transaction!.timeAgo,
               senderInitials: post.transaction!.senderInitials,
@@ -178,8 +179,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   Widget _buildReplyCard(Post reply) {
     final replyCard = PostCard(
+      userAddress: reply.userId, // Using userId as the user's public key/address
       userName: reply.userName,
-      userId: reply.userId,
       content: reply.content,
       userAvatarUrl: reply.userAvatarUrl,
       userInitials: reply.userInitials,
@@ -189,6 +190,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
       transaction: reply.transaction != null
           ? TransactionCard(
               senderName: reply.transaction!.senderName,
+              senderAddress: reply.userId, // Use the reply author's address as sender address
               amount: reply.transaction!.amount,
               timeAgo: reply.transaction!.timeAgo,
               senderInitials: reply.transaction!.senderInitials,

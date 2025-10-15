@@ -390,3 +390,4 @@ class FlyAvatarFallback extends FlyBox {
     }
   }
 }
+

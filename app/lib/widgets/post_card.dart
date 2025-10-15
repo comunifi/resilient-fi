@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
 import '../design/avatar.dart';
-import '../design/button.dart';
+import '../design/avatar_blockies.dart';
 import '../design/card.dart';
+import '../utils/address.dart';
 import 'transaction_card.dart';
 
 class PostCard extends FlyCard {
@@ -22,9 +23,9 @@ class PostCard extends FlyCard {
     super.transformAlignment,
     super.clipBehavior,
     super.flyStyle,
-    required this.userName,
-    required this.userId,
+    required this.userAddress,
     required this.content,
+    this.userName,
     this.userAvatarUrl,
     this.userInitials,
     this.likeCount = 0,
@@ -39,9 +40,9 @@ class PostCard extends FlyCard {
     this.onMore,
   }) : super(variant: CardVariant.outlined, size: CardSize.medium);
 
-  final String userName;
-  final String userId;
+  final String userAddress;
   final String content;
+  final String? userName;
   final String? userAvatarUrl;
   final String? userInitials;
   final int likeCount;
@@ -81,10 +82,8 @@ class PostCard extends FlyCard {
         _buildContent(),
 
         // Transaction (optional)
-        if (transaction != null) transaction!,
-
-        // Footer with action buttons
-        _buildFooter(),
+        if (transaction != null) 
+          FlyBox(children: [transaction!]).mt('s3'),
       ],
     );
   }
@@ -92,120 +91,38 @@ class PostCard extends FlyCard {
   Widget _buildHeader() {
     return FlyBox(
       children: [
-        // User avatar
+        // User avatar with blockies
         FlyAvatar(
           size: AvatarSize.md,
           shape: AvatarShape.circular,
-          children: [
-            if (userAvatarUrl != null)
-              FlyAvatarImage(
-                imageUrl: userAvatarUrl!,
-                child: FlyAvatarFallback(
-                  fallbackText:
-                      userInitials ?? userName.substring(0, 1).toUpperCase(),
-                ),
-              )
-            else
-              FlyAvatarFallback(
-                fallbackText:
-                    userInitials ?? userName.substring(0, 1).toUpperCase(),
-              ),
-          ],
+          child: FlyAvatarBlockies(
+            address: userAddress,
+            size: AvatarSize.md,
+            shape: AvatarShape.circular,
+            fallbackText: userInitials ?? AddressUtils.getAddressInitials(userAddress),
+          ),
         ),
 
-        // User name, ID, and timestamp
+        // User name and timestamp
         FlyBox(
           children: [
-            FlyText(userName).text('base').weight('semibold').color('gray800'),
-            FlyText(userId).text('sm').color('gray500'),
+            FlyText(AddressUtils.truncateIfAddress(userName ?? userAddress))
+                .text('base')
+                .weight('semibold')
+                .color('gray800'),
             if (createdAt != null)
               FlyText(_formatTimestamp(createdAt!)).text('xs').color('gray400'),
           ],
-        ).col().items('start').gap('s1').flex(1),
+        ).row().items('center').gap('s4').flex(1),
 
-        // Action buttons
-        FlyBox(
-          children: [
-            FlyButton(
-              onTap: onShare,
-              buttonColor: ButtonColor.secondary,
-              size: ButtonSize.small,
-              child: FlyIcon(Icons.share).color('gray500'),
-            ),
-            FlyButton(
-              onTap: onMore,
-              buttonColor: ButtonColor.secondary,
-              size: ButtonSize.small,
-              child: FlyIcon(Icons.more_vert).color('gray500'),
-            ),
-          ],
-        ).row().items('center').gap('s2'),
       ],
-    ).row().items('center').gap('s3');
+    ).row().items('center').gap('s3').mb('s2');
   }
 
   Widget _buildContent() {
     return FlyText(content).text('sm').color('gray700').leading('relaxed');
   }
 
-  Widget _buildFooter() {
-    return FlyBox(
-          children: [
-            // Left side: Like and Dislike buttons
-            FlyBox(
-              children: [
-                // Like button
-                FlyButton(
-                  onTap: onLike,
-                  buttonColor: ButtonColor.secondary,
-                  size: ButtonSize.small,
-                  children: [
-                    FlyIcon(Icons.favorite).color('#ef4444'),
-                    FlyText(
-                      likeCount.toString(),
-                    ).text('sm').weight('medium').color('gray600'),
-                  ],
-                ).row().items('center').gap('s1'),
-
-                // Dislike button
-                FlyButton(
-                  onTap: onDislike,
-                  buttonColor: ButtonColor.secondary,
-                  size: ButtonSize.small,
-                  children: [
-                    FlyIcon(Icons.close).color('#6b7280'),
-                    FlyText(
-                      dislikeCount.toString(),
-                    ).text('sm').weight('medium').color('gray600'),
-                  ],
-                ).row().items('center').gap('s1'),
-              ],
-            ).row(),
-
-            // Right side: Comment button
-            FlyBox(
-              children: [
-                FlyButton(
-                  onTap: onComment,
-                  buttonColor: ButtonColor.secondary,
-                  size: ButtonSize.small,
-                  children: [
-                    FlyIcon(Icons.chat_bubble_outline).color('#6b7280'),
-                    FlyText(
-                      commentCount.toString(),
-                    ).text('sm').weight('medium').color('gray600'),
-                  ],
-                ),
-              ],
-            ).row(),
-          ],
-        )
-        // TODO: figure out why .jusify(space-between) doesn't work
-        // look at .justify('between')
-        .row(mainAxisAlignment: MainAxisAlignment.spaceBetween)
-        .justify('space-between')
-        .gap('s4');
-  }
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
@@ -238,9 +155,9 @@ class PostCard extends FlyCard {
       transformAlignment: transformAlignment,
       clipBehavior: clipBehavior,
       flyStyle: newStyle,
-      userName: userName,
-      userId: userId,
+      userAddress: userAddress,
       content: content,
+      userName: userName,
       userAvatarUrl: userAvatarUrl,
       userInitials: userInitials,
       likeCount: likeCount,

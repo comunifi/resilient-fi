@@ -22,6 +22,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   web_socket_channel: ^2.4.0
   lucide_icons: ^0.257.0
+  blockies: ^0.1.2
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/design/avatar.dart';
 import 'package:app/design/button.dart';
 import 'package:app/models/post.dart';
 import 'package:app/screens/design_system.dart';
@@ -106,25 +105,8 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     final feedState = context.watch<FeedState>();
     final posts = feedState.posts;
     final isLoadingMore = feedState.isLoadingMore;
-    final hasMorePosts = feedState.hasMorePosts;
 
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Comunifi'),
-        backgroundColor: CupertinoTheme.of(context).primaryColor,
-        brightness: Brightness.dark,
-        trailing: FlyButton(
-          onTap: handleProfile,
-          buttonColor: ButtonColor.secondary,
-          child: FlyAvatar(
-            size: AvatarSize.xs,
-            shape: AvatarShape.circular,
-            children: [
-              FlyAvatarFallback(fallbackText: 'JS', fallbackIcon: Icons.person),
-            ],
-          ),
-        ),
-      ),
       child: SafeArea(
         child: Stack(
           children: [
@@ -144,20 +126,17 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                       // Show loading indicator at the bottom if loading more
                       if (isLoadingMore) _buildLoadingIndicator(),
                     ],
-                  ).col().gap('s4').px('s4'),
+                  ).col().gap('s4').px('s4').py('s4'),
                 ),
-                // Show "no more posts" message if we've reached the end
-                if (!hasMorePosts && posts.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      child: const Center(
-                        child: Text(
-                          'No more posts to load',
-                          style: TextStyle(
-                            color: CupertinoColors.systemGrey,
-                            fontSize: 14,
-                          ),
+                // Show "no posts posted" message if there are no posts at all
+                if (posts.isEmpty)
+                  SliverFillRemaining(
+                    child: Center(
+                      child: Text(
+                        'No posts found',
+                        style: TextStyle(
+                          color: CupertinoColors.systemGrey,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -170,43 +149,43 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
               right: 20,
               child: FlyButton(
                 onTap: handleCreatePost,
-                buttonColor: ButtonColor.secondary,
+                buttonColor: ButtonColor.primary,
+                variant: ButtonVariant.solid,
                 width: 60,
                 height: 60,
                 flyStyle: FlyStyle(
-                  rounded: '999px',
-                  bg: CupertinoTheme.of(context).primaryColor,
+                  rounded: 'xl',
                 ),
                 child: FlyIcon(Icons.add).color('white'),
               ),
             ),
             // Temporary design system button for testing
-            Positioned(
-              bottom: 20,
-              left: 20,
-              child: CupertinoButton(
-                onPressed: () {
-                  print('Design system button tapped from FAB!');
-                  Navigator.of(context).push(
-                    CupertinoPageRoute(
-                      builder: (context) => const DesignSystemScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: const Icon(
-                    Icons.palette,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+            // Positioned(
+            //   bottom: 20,
+            //   left: 20,
+            //   child: CupertinoButton(
+            //     onPressed: () {
+            //       print('Design system button tapped from FAB!');
+            //       Navigator.of(context).push(
+            //         CupertinoPageRoute(
+            //           builder: (context) => const DesignSystemScreen(),
+            //         ),
+            //       );
+            //     },
+            //     child: Container(
+            //       width: 60,
+            //       height: 60,
+            //       decoration: BoxDecoration(
+            //         color: Colors.blue,
+            //         borderRadius: BorderRadius.circular(30),
+            //       ),
+            //       child: const Icon(
+            //         Icons.palette,
+            //         color: Colors.white,
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -216,8 +195,8 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   Widget _buildPostCard(Post post) {
     return PostCard(
       key: Key(post.id),
+      userAddress: post.userId, // Using userId as the user's public key/address
       userName: post.userName,
-      userId: post.userId,
       content: post.content,
       userInitials: post.userInitials,
       likeCount: post.likeCount,
@@ -226,9 +205,39 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
       transaction: post.transaction != null
           ? TransactionCard(
               senderName: post.transaction!.senderName,
+              senderAddress: post.userId, // Use the post author's address as sender address
               amount: post.transaction!.amount,
               timeAgo: post.transaction!.timeAgo,
               senderInitials: post.transaction!.senderInitials,
+              status: post.transaction!.timeAgo == 'Pending' ? 'Request Pending' : 
+                      post.transaction!.timeAgo == 'Complete' ? 'Request Complete' : 'Completed',
+              onBackTap: () {
+                // Handle back navigation
+                print('Back tapped on transaction card');
+              },
+              onDeleteTap: () {
+                // Handle delete action
+                print('Delete tapped on transaction card');
+              },
+              onFulfillRequest: () async {
+                // Open new post screen with pre-filled send data
+                final content = await showCupertinoModalPopup<String?>(
+                  context: context,
+                  builder: (context) => SimpleNewPostScreen(
+                    prefilledTransaction: PrefilledTransaction(
+                      recipient: post.transaction!.senderName,
+                      amount: double.parse(post.transaction!.amount.replaceAll(RegExp(r'[^\d.]'), '')),
+                      currency: post.transaction!.amount.split(' ').last,
+                    ),
+                  ),
+                );
+
+                if (content == null || content.isEmpty) {
+                  return;
+                }
+
+                await _feedState.createPost(content);
+              },
             )
           : null,
       createdAt: post.createdAt,

@@ -3,12 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../design/button.dart';
 import '../../design/sheet.dart';
 import '../../widgets/send_receive_widget.dart';
 
+class PrefilledTransaction {
+  final String recipient;
+  final double amount;
+  final String currency;
+
+  PrefilledTransaction({
+    required this.recipient,
+    required this.amount,
+    required this.currency,
+  });
+}
+
 class SimpleNewPostScreen extends StatefulWidget {
-  const SimpleNewPostScreen({super.key});
+  const SimpleNewPostScreen({
+    super.key,
+    this.prefilledTransaction,
+  });
+
+  final PrefilledTransaction? prefilledTransaction;
 
   @override
   State<SimpleNewPostScreen> createState() => _SimpleNewPostScreenState();
@@ -17,7 +33,6 @@ class SimpleNewPostScreen extends StatefulWidget {
 class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
   final TextEditingController _postController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  String selectedCommunity = 'ComuniFi';
 
   @override
   void initState() {
@@ -53,29 +68,6 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
       showDragHandle: true,
       child: FlyBox(
         children: [
-          // Header with community dropdown
-          FlyBox(
-            children: [
-              FlyButton(
-                onTap: () {
-                  _showCommunitySelection();
-                },
-                variant: ButtonVariant.ghost,
-                buttonColor: ButtonColor.secondary,
-                child: FlyBox(
-                  children: [
-                    FlyText(
-                      selectedCommunity,
-                    ).text('base').weight('medium').color('gray900'),
-                    FlyIcon(
-                      Icons.keyboard_arrow_down,
-                    ).color('gray600').w('s4').h('s4'),
-                  ],
-                ).row().items('center').gap('s1'),
-              ),
-            ],
-          ).mb('s4'),
-
           // Text input area
           FlyBox(
                 child: CupertinoTextField(
@@ -83,7 +75,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
                   focusNode: _focusNode,
                   maxLines: 5,
                   textAlignVertical: TextAlignVertical.top,
-                  placeholder: 'What\'s on your mind?',
+                  placeholder: 'share with your community...',
                   style: const TextStyle(fontSize: 16, height: 1.5),
                   padding: const EdgeInsets.all(16),
                 ),
@@ -91,62 +83,13 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
               .mb('s4'),
 
           // Send and Receive mechanism
-          SendReceiveWidget(onPost: _handlePost),
+          SendReceiveWidget(
+            onPost: _handlePost,
+            prefilledTransaction: widget.prefilledTransaction,
+          ),
         ],
       ).col().px('s4'),
     );
   }
 
-  void _showCommunitySelection() {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: FlyText(
-          'Select Community',
-        ).text('lg').weight('bold').color('gray900'),
-        actions: [
-          CupertinoActionSheetAction(
-            child: FlyText('ComuniFi').color('purple600'),
-            onPressed: () {
-              setState(() {
-                selectedCommunity = 'ComuniFi';
-              });
-              Navigator.pop(context);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: FlyText('TechFi').color('purple600'),
-            onPressed: () {
-              setState(() {
-                selectedCommunity = 'TechFi';
-              });
-              Navigator.pop(context);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: FlyText('DeFi').color('purple600'),
-            onPressed: () {
-              setState(() {
-                selectedCommunity = 'DeFi';
-              });
-              Navigator.pop(context);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: FlyText('TradFi').color('purple600'),
-            onPressed: () {
-              setState(() {
-                selectedCommunity = 'TradFi';
-              });
-              Navigator.pop(context);
-            },
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: FlyText('Cancel').color('red600'),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-    );
-  }
 }

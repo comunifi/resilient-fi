@@ -3,11 +3,18 @@ import 'package:flywind/flywind.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../design/button.dart';
+import '../design/card.dart';
+import '../screens/feed/new_post.dart';
 
 class SendReceiveWidget extends StatefulWidget {
   final Function() onPost;
+  final PrefilledTransaction? prefilledTransaction;
 
-  const SendReceiveWidget({super.key, required this.onPost});
+  const SendReceiveWidget({
+    super.key, 
+    required this.onPost,
+    this.prefilledTransaction,
+  });
 
   @override
   State<SendReceiveWidget> createState() => _SendReceiveWidgetState();
@@ -17,6 +24,20 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
   TransactionEntry? _transaction;
   final TextEditingController _amountController = TextEditingController();
   String _mode = 'none'; // 'send', 'receive', or 'none'
+
+  @override
+  void initState() {
+    super.initState();
+    // If there's a prefilled transaction, set up send mode
+    if (widget.prefilledTransaction != null) {
+      _mode = 'send';
+      _transaction = TransactionEntry(
+        recipient: widget.prefilledTransaction!.recipient,
+        amount: widget.prefilledTransaction!.amount,
+        currency: widget.prefilledTransaction!.currency,
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -39,54 +60,50 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
   }
 
   Widget _buildTransactionEntry(TransactionEntry transaction, bool isSend) {
-    return FlyBox(
+    return FlyCardWithHeader(
+      title: isSend ? 'Send Tokens' : 'Request Tokens',
+      headerIcon: isSend ? LucideIcons.arrowUpRight : LucideIcons.arrowDownLeft,
+      headerActionIcon: LucideIcons.trash2,
+      onHeaderActionTap: () {
+        setState(() {
+          _mode = 'none';
+          _transaction = null;
+        });
+      },
+      headerBackgroundColor: 'gray100',
+      cardBackgroundColor: 'gray50',
+      children: [
+        // Main content (two rows)
+        FlyBox(
           children: [
-            // Main content (two rows)
+            // First row: Recipient dropdown
             FlyBox(
               children: [
-                // First row: Action icon, label, and recipient dropdown
-                FlyBox(
-                  children: [
-                    // Action icon and label
-                    FlyBox(
-                      children: [
-                        FlyBox(
-                              child: FlyIcon(
-                                isSend ? LucideIcons.arrowUpRight : LucideIcons.arrowDownLeft,
-                              ).color('gray600').w('s4').h('s4'),
-                            )
-                            .w('s8')
-                            .h('s8')
-                            .bg('purple100')
-                            .rounded('sm')
-                            .items('center')
-                            .justify('center'),
+                FlyText(
+                  isSend ? 'to' : 'from',
+                ).text('sm').color('gray600'),
+                FlyButton(
+                  onTap: () => _showRecipientSelection(transaction),
+                  variant: ButtonVariant.outlined,
+                  buttonColor: ButtonColor.secondary,
+                  child: FlyBox(
+                    children: [
+                      FlyText(
+                        transaction.recipient,
+                      ).text('sm').weight('medium').color('gray900'),
+                      FlyIcon(
+                        LucideIcons.chevronDown,
+                      ).color('gray600').w('s3').h('s3'),
+                    ],
+                  ).row().items('center').gap('s1'),
+                ),
+              ],
+            ).row().items('center').gap('s2').justify('between'),
 
-                        FlyText(
-                          isSend ? 'Send to' : 'Receive from',
-                        ).text('sm').weight('medium').color('gray700'),
-                      ],
-                    ).row().items('center').gap('s2'),
-
-                    // Recipient dropdown
-                    FlyButton(
-                      onTap: () => _showRecipientSelection(transaction),
-                      buttonColor: ButtonColor.secondary,
-                      child: FlyBox(
-                        children: [
-                          FlyText(
-                            transaction.recipient,
-                          ).text('sm').weight('medium').color('gray900'),
-                          FlyIcon(
-                            LucideIcons.chevronDown,
-                          ).color('gray600').w('s3').h('s3'),
-                        ],
-                      ).row().items('center').gap('s1'),
-                    ),
-                  ],
-                ).row().items('center').gap('s3').justify('space-between'),
-
-                // Second row: Amount input and currency dropdown
+            // Second row: Amount input and currency dropdown
+            FlyBox(
+              children: [
+                FlyText('amount').text('sm').color('gray600'),
                 FlyBox(
                   children: [
                     // Amount input
@@ -105,11 +122,12 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                           });
                         },
                       ),
-                    ).w('s16').h('s8').bg('gray100').rounded('sm').px('s2'),
+                    ).w('s16').h('s8').bg('white').rounded('sm').px('s2').border(1).borderColor('gray200'),
 
                     // Currency dropdown
                     FlyButton(
                       onTap: () => _showCurrencySelection(transaction),
+                      variant: ButtonVariant.outlined,
                       buttonColor: ButtonColor.secondary,
                       child: FlyBox(
                         children: [
@@ -125,33 +143,11 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                   ],
                 ).row().items('center').gap('s2'),
               ],
-            ).col().gap('s3'),
-
-            // Close button (positioned in top right corner)
-            Positioned(
-              top: 12,
-              right: 0,
-              child: FlyButton(
-                onTap: () {
-                  setState(() {
-                    _mode = 'none';
-                    _transaction = null;
-                  });
-                },
-                buttonColor: ButtonColor.secondary,
-                size: ButtonSize.small,
-                child: FlyIcon(LucideIcons.x).color('gray600').w('s4').h('s4'),
-              ),
-            ),
+            ).row().items('center').gap('s2').justify('between'),
           ],
-        )
-        .stack()
-        .bg('purple50')
-        .rounded('lg')
-        .border(1)
-        .borderColor('purple200')
-        .px('s3')
-        .py('s2');
+        ).col().gap('s3'),
+      ],
+    );
   }
 
   Widget _buildActionButtons() {

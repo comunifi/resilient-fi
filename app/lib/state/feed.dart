@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/models/nostr_event.dart';
 import 'package:app/models/post.dart';
+import 'package:app/models/transaction.dart';
 import 'package:app/services/nostr/nostr.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -129,6 +130,9 @@ class FeedState extends ChangeNotifier {
       posts.clear();
       upsertPosts(historicalPosts);
 
+      // Add some mock posts with transactions for testing
+      _addMockPostsWithTransactions();
+
       // If we got less than 20 posts, we've reached the end
       if (historicalPosts.length < limit) {
         hasMorePosts = false;
@@ -139,6 +143,7 @@ class FeedState extends ChangeNotifier {
       print('Error loading posts: $e');
       // Fallback to mock posts for development
       posts.clear();
+      _addMockPostsWithTransactions();
       safeNotifyListeners();
     }
 
@@ -184,6 +189,9 @@ class FeedState extends ChangeNotifier {
 
       upsertPosts(historicalPosts);
 
+      // Add some mock posts with transactions for testing
+      _addMockPostsWithTransactions();
+
       // If we got less than limit posts, we've reached the end
       if (historicalPosts.length < limit) {
         hasMorePosts = false;
@@ -198,6 +206,7 @@ class FeedState extends ChangeNotifier {
     } catch (e) {
       print('Error refreshing posts: $e');
       // Fallback to mock posts for development
+      _addMockPostsWithTransactions();
       safeNotifyListeners();
     }
   }
@@ -289,5 +298,56 @@ class FeedState extends ChangeNotifier {
         this.posts.add(post);
       }
     }
+  }
+
+  /// Add mock posts with transactions for testing the new TransactionCard design
+  void _addMockPostsWithTransactions() {
+    final now = DateTime.now();
+    
+    // Mock post 1: Request Pending with action button
+    final pendingRequestPost = Post(
+      id: 'mock_pending_${now.millisecondsSinceEpoch}',
+      userName: 'John Smith',
+      userId: 'john123',
+      content: 'Requesting \$299 for software license refund. Community admin please review.',
+      userInitials: 'JS',
+      likeCount: 5,
+      dislikeCount: 0,
+      commentCount: 3,
+      transaction: Transaction(
+        senderName: 'John Smith',
+        amount: '299.00 USDC',
+        timeAgo: 'Pending',
+        senderInitials: 'JS',
+      ),
+      createdAt: now.subtract(const Duration(minutes: 30)),
+      updatedAt: now.subtract(const Duration(minutes: 30)),
+    );
+
+    // Mock post 2: Request Complete without action button
+    final completedRequestPost = Post(
+      id: 'mock_complete_${now.millisecondsSinceEpoch + 1}',
+      userName: 'Gordon Freeman',
+      userId: 'gordon456',
+      content: 'Previous request has been fulfilled. Thanks community!',
+      userInitials: 'GF',
+      likeCount: 8,
+      dislikeCount: 0,
+      commentCount: 2,
+      transaction: Transaction(
+        senderName: 'Gordon Freeman',
+        amount: '150.00 USDC',
+        timeAgo: 'Complete',
+        senderInitials: 'GF',
+      ),
+      createdAt: now.subtract(const Duration(hours: 2)),
+      updatedAt: now.subtract(const Duration(hours: 2)),
+    );
+
+    // Add mock posts to the beginning of the list
+    posts.insertAll(0, [
+      pendingRequestPost,
+      completedRequestPost,
+    ]);
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
 import 'spinner.dart';
+import 'button.dart';
 
 enum CardVariant { outlined, filled, unstyled }
 
@@ -188,6 +189,149 @@ class FlyCardImage extends FlyBox {
       aspectRatio: aspectRatio,
       fit: fit,
       overlay: overlay,
+    );
+  };
+}
+
+class FlyCardWithHeader extends FlyBox {
+  FlyCardWithHeader({
+    super.key,
+    super.child,
+    super.children,
+    super.alignment,
+    super.padding,
+    super.margin,
+    super.decoration,
+    super.foregroundDecoration,
+    super.width,
+    super.height,
+    super.constraints,
+    super.transform,
+    super.transformAlignment,
+    super.clipBehavior,
+    super.flyStyle,
+    required this.title,
+    this.headerIcon,
+    this.headerActionIcon,
+    this.onHeaderActionTap,
+    this.onBackTap,
+    this.headerBackgroundColor = 'gray100',
+    this.cardBackgroundColor = 'white',
+    this.showBackButton = false,
+  });
+
+  final String title;
+  final IconData? headerIcon;
+  final IconData? headerActionIcon;
+  final VoidCallback? onHeaderActionTap;
+  final VoidCallback? onBackTap;
+  final String headerBackgroundColor;
+  final String cardBackgroundColor;
+  final bool showBackButton;
+
+  bool get hasDefaultStyle => true;
+
+  @override
+  FlyStyle getDefaultStyle(FlyStyle incomingStyle) {
+    return incomingStyle.copyWith(
+      bg: cardBackgroundColor,
+      border: 1,
+      borderColor: 'gray200',
+      rounded: 'lg',
+      p: '0',
+      m: incomingStyle.m ?? '0',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mergedStyle = getDefaultStyle(flyStyle);
+
+    return FlyBox(
+      key: key,
+      alignment: alignment,
+      padding: padding,
+      margin: margin,
+      decoration: decoration,
+      foregroundDecoration: foregroundDecoration,
+      width: width,
+      height: height,
+      constraints: constraints,
+      transform: transform,
+      transformAlignment: transformAlignment,
+      clipBehavior: clipBehavior,
+      flyStyle: mergedStyle,
+      children: [
+        // Header section
+        FlyBox(
+          children: [
+            // Left side: Back button (if enabled) + Icon + Title
+            FlyBox(
+              children: [
+                if (showBackButton)
+                  FlyButton(
+                    onTap: onBackTap,
+                    buttonColor: ButtonColor.none,
+                    child: FlyIcon(Icons.chevron_left).color('gray600').w('s5').h('s5'),
+                  ),
+                if (headerIcon != null)
+                  FlyIcon(headerIcon!).color('gray600').w('s4').h('s4'),
+                FlyText(title).text('sm').weight('medium').color('gray700'),
+              ],
+            ).row().items('center').gap('s2'),
+
+            // Right side: Action button (if provided)
+            if (headerActionIcon != null && onHeaderActionTap != null)
+              FlyButton(
+                onTap: onHeaderActionTap,
+                buttonColor: ButtonColor.none,
+                child: FlyIcon(headerActionIcon!).color('gray600').w('s4').h('s4'),
+              ),
+          ],
+        )
+        .row()
+        .items('center')
+        .justify('between')
+        .px('s3')
+        .py('s2')
+        .bg(headerBackgroundColor)
+        .rounded('lg'),
+
+        // Main content section
+        FlyBox(
+          child: child,
+          children: children,
+        ).px('s3').py('s3'),
+      ],
+    ).col();
+  }
+
+  @override
+  FlyCardWithHeader Function(FlyStyle newStyle) get copyWith => (newStyle) {
+    return FlyCardWithHeader(
+      key: key,
+      child: child,
+      children: children,
+      alignment: alignment,
+      padding: padding,
+      margin: margin,
+      decoration: decoration,
+      foregroundDecoration: foregroundDecoration,
+      width: width,
+      height: height,
+      constraints: constraints,
+      transform: transform,
+      transformAlignment: transformAlignment,
+      clipBehavior: clipBehavior,
+      flyStyle: newStyle,
+      title: title,
+      headerIcon: headerIcon,
+      headerActionIcon: headerActionIcon,
+      onHeaderActionTap: onHeaderActionTap,
+      onBackTap: onBackTap,
+      headerBackgroundColor: headerBackgroundColor,
+      cardBackgroundColor: cardBackgroundColor,
+      showBackButton: showBackButton,
     );
   };
 }
