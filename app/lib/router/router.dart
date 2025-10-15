@@ -1,6 +1,4 @@
-import 'package:app/screens/feed/post/screen.dart';
 import 'package:app/screens/feed/screen.dart';
-import 'package:app/screens/home.dart';
 import 'package:app/state/state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -46,21 +44,13 @@ GoRouter createRouter(
   observers: observers,
   redirect: redirectHandler,
   routes: [
-    GoRoute(
-      name: 'Onboarding',
-      path: '/',
-      parentNavigatorKey: rootNavigatorKey,
-      builder: (context, state) {
-        return const LandingScreen();
-      },
-    ),
     ShellRoute(
       navigatorKey: appShellNavigatorKey,
       builder: (context, state, child) {
         final userId = state.pathParameters['userId'];
 
         if (userId == null) {
-          return const LandingScreen();
+          return const SizedBox.shrink();
         }
 
         return provideAppState(userId, child);
@@ -71,14 +61,6 @@ GoRouter createRouter(
           path: '/:userId/posts',
           builder: (context, state) {
             return const SocialFeedScreen();
-          },
-        ),
-        GoRoute(
-          name: 'PostDetails',
-          path: '/:userId/posts/:postId',
-          builder: (context, state) {
-            final postId = state.pathParameters['postId']!;
-            return PostDetailsScreen(postId: postId);
           },
         ),
       ],

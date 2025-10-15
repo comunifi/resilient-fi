@@ -61,12 +61,6 @@ class SecureService {
       final parts = storedValue.split(':');
       if (parts.length != 2) return null;
 
-      final encodedPublicKey = nostrInstance.services.bech32.encodeBech32(
-        parts[0],
-        'npub',
-      );
-      print('encoded public key: $encodedPublicKey');
-
       final privateKeyHex = parts[1];
       return (parts[0], privateKeyHex);
     } catch (_) {

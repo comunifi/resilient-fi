@@ -94,7 +94,7 @@ class FeedState extends ChangeNotifier {
             }
           },
           onError: (error) {
-            print('Error listening to messages: $error');
+            debugPrint('Error listening to messages: $error');
           },
         );
   }
@@ -140,7 +140,7 @@ class FeedState extends ChangeNotifier {
 
       safeNotifyListeners(); // call this to tell the UI to update
     } catch (e) {
-      print('Error loading posts: $e');
+      debugPrint('Error loading posts: $e');
       // Fallback to mock posts for development
       posts.clear();
       _addMockPostsWithTransactions();
@@ -204,7 +204,7 @@ class FeedState extends ChangeNotifier {
         startListening();
       }
     } catch (e) {
-      print('Error refreshing posts: $e');
+      debugPrint('Error refreshing posts: $e');
       // Fallback to mock posts for development
       _addMockPostsWithTransactions();
       safeNotifyListeners();
@@ -259,7 +259,7 @@ class FeedState extends ChangeNotifier {
 
       safeNotifyListeners();
     } catch (e) {
-      print('Error loading more posts: $e');
+      debugPrint('Error loading more posts: $e');
     }
 
     isLoadingMore = false;
@@ -298,6 +298,9 @@ class FeedState extends ChangeNotifier {
         this.posts.add(post);
       }
     }
+    
+    // Sort posts by creation date (most recent first)
+    this.posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   /// Add mock posts with transactions for testing the new TransactionCard design
@@ -344,10 +347,13 @@ class FeedState extends ChangeNotifier {
       updatedAt: now.subtract(const Duration(hours: 2)),
     );
 
-    // Add mock posts to the beginning of the list
-    posts.insertAll(0, [
+    // Add mock posts to the list
+    posts.addAll([
       pendingRequestPost,
       completedRequestPost,
     ]);
+    
+    // Sort posts by creation date (most recent first)
+    posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 }

@@ -227,7 +227,7 @@ class NostrService {
 
     // Clean up when the stream is cancelled
     controller.onCancel = () {
-      print('onCancel: $subscriptionId');
+      debugPrint('onCancel: $subscriptionId');
       _unsubscribe(subscriptionId);
     };
 

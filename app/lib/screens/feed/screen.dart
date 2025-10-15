@@ -4,7 +4,6 @@ import 'package:app/design/button.dart';
 import 'package:app/models/post.dart';
 import 'package:app/screens/design_system.dart';
 import 'package:app/screens/feed/new_post.dart';
-import 'package:app/screens/feed/profile.dart';
 import 'package:app/state/feed.dart';
 import 'package:app/widgets/post_card.dart';
 import 'package:app/widgets/transaction_card.dart';
@@ -62,13 +61,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 
   Future<void> handleRefresh() async {
     await _feedState.refreshPosts();
-  }
-
-  Future<void> handleProfile() async {
-    await showCupertinoModalPopup(
-      context: context,
-      builder: (context) => const DraggableProfileScreen(),
-    );
   }
 
   Future<void> handleCreatePost() async {
