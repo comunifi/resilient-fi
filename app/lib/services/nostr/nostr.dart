@@ -8,9 +8,9 @@ import 'package:app/services/secure/secure.dart';
 import 'package:app/services/tor/tor_service.dart';
 import 'package:dart_nostr/dart_nostr.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/io.dart';
 import 'package:socks5_proxy/socks.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// WebSocket-based Nostr service implementation
 class NostrService {
@@ -56,7 +56,7 @@ class NostrService {
       final host = uri.host;
       final port = uri.port;
       final isSecure = uri.scheme == 'wss';
-      
+
       // Check if this is a localhost connection
       if (_torService.isLocalhost(host)) {
         // For localhost, connect directly without Tor
@@ -64,13 +64,15 @@ class NostrService {
       } else {
         // For remote hosts, check if Tor is available first
         if (!await _torService.isTorRunning()) {
-          throw TorConnectionException('Tor daemon is not running. Install with: brew install tor && brew services start tor');
+          throw TorConnectionException(
+            'Tor daemon is not running. Install with: brew install tor && brew services start tor',
+          );
         }
-        
+
         // Create WebSocket connection through Tor SOCKS proxy
         _channel = await _createWebSocketThroughTor(host, port, isSecure);
       }
-      
+
       await _setupConnection(onConnected);
     } catch (e) {
       debugPrint('Failed to connect through Tor: $e');
@@ -81,7 +83,11 @@ class NostrService {
   }
 
   /// Create WebSocket connection directly (for localhost)
-  Future<WebSocketChannel> _createWebSocketDirect(String host, int port, bool isSecure) async {
+  Future<WebSocketChannel> _createWebSocketDirect(
+    String host,
+    int port,
+    bool isSecure,
+  ) async {
     try {
       // For localhost connections, use the original URL directly
       final webSocket = await WebSocket.connect(_relayUrl);
@@ -94,24 +100,30 @@ class NostrService {
   }
 
   /// Create WebSocket connection through Tor SOCKS proxy
-  Future<WebSocketChannel> _createWebSocketThroughTor(String host, int port, bool isSecure) async {
+  Future<WebSocketChannel> _createWebSocketThroughTor(
+    String host,
+    int port,
+    bool isSecure,
+  ) async {
     try {
       final httpClient = _createTorHttpClient();
-      
+
       // Ensure the URL has an explicit port for SOCKS5 proxy compatibility
       String webSocketUrl = _relayUrl;
       if (isSecure && !webSocketUrl.contains(':443')) {
-        webSocketUrl = webSocketUrl.replaceAll(':443', '').replaceAll('wss://', 'wss://') + ':443';
+        webSocketUrl =
+            '${webSocketUrl.replaceAll(':443', '').replaceAll('wss://', 'wss://')}:443';
       } else if (!isSecure && !webSocketUrl.contains(':80')) {
-        webSocketUrl = webSocketUrl.replaceAll(':80', '').replaceAll('ws://', 'ws://') + ':80';
+        webSocketUrl =
+            '${webSocketUrl.replaceAll(':80', '').replaceAll('ws://', 'ws://')}:80';
       }
-      
+
       // Use the SOCKS5 proxy package to create a WebSocket connection
       final webSocket = await WebSocket.connect(
         webSocketUrl,
         customClient: httpClient,
       );
-      
+
       final channel = IOWebSocketChannel(webSocket);
       return channel;
     } catch (e) {
@@ -119,7 +131,7 @@ class NostrService {
       rethrow;
     }
   }
-  
+
   /// Create HttpClient configured to use Tor SOCKS proxy
   HttpClient _createTorHttpClient() {
     final client = HttpClient();
@@ -148,7 +160,7 @@ class NostrService {
 
     // Add a small delay to ensure WebSocket is fully connected
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     _isConnected = true;
     debugPrint('Connected to relay${_useTor ? ' via Tor' : ''}');
     onConnected(true);
@@ -159,7 +171,7 @@ class NostrService {
     if (_isConnected) {
       debugPrint('Disconnected from relay${_useTor ? ' (Tor)' : ''}');
     }
-    
+
     if (_channel != null) {
       await _channel!.sink.close();
       _channel = null;

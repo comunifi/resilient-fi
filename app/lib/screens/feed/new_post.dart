@@ -6,7 +6,9 @@ import '../../design/sheet.dart';
 import '../../widgets/send_receive_widget.dart';
 
 class SimpleNewPostScreen extends StatefulWidget {
-  const SimpleNewPostScreen({super.key});
+  final Function() onSendBack;
+
+  const SimpleNewPostScreen({super.key, required this.onSendBack});
 
   @override
   State<SimpleNewPostScreen> createState() => _SimpleNewPostScreenState();
@@ -38,6 +40,13 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
     ); // here, when pop is called, the value is returned
   }
 
+  void handleSendBack() {
+    widget.onSendBack();
+    GoRouter.of(
+      context,
+    ).pop(); // here, when pop is called, the value is returned
+  }
+
   @override
   Widget build(BuildContext context) {
     return FlySheet(
@@ -64,7 +73,7 @@ class _SimpleNewPostScreenState extends State<SimpleNewPostScreen> {
           ).mb('s4'),
 
           // Send and Receive mechanism
-          SendReceiveWidget(onPost: _handlePost),
+          SendReceiveWidget(onPost: _handlePost, onSendBack: handleSendBack),
         ],
       ).col().px('s4'),
     );

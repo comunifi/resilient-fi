@@ -445,19 +445,6 @@ class Legacy4337Bundlers {
 
     return base;
   }
-
-  ERC4337Config? getFromAlias(String alias) {
-    if (alias.contains('celo')) {
-      return null;
-    }
-
-    return switch (alias) {
-      'usdc.base' => base,
-      'wallet.oak.community' => base,
-      'ceur.celo' => celo,
-      _ => polygon,
-    };
-  }
 }
 
 enum CardManagerType { classic, safe }

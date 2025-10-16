@@ -16,7 +16,7 @@ class FeedState extends ChangeNotifier {
   FeedState() : _nostrService = NostrService(dotenv.get('RELAY_URL'));
 
   // Tor-related fields
-  bool _useTor = false;
+  bool _useTor = true;
   String? _torConnectionStatus;
   String? _torIpAddress;
   bool _isReconnecting = false;
@@ -28,7 +28,7 @@ class FeedState extends ChangeNotifier {
           _lastLoadedAt = DateTime.now();
           await startListening();
           loadPosts();
-          
+
           // If using Tor, verify connection and get IP address
           if (_useTor) {
             _verifyTorConnectionAsync();
@@ -82,42 +82,42 @@ class FeedState extends ChangeNotifier {
       _messageSubscription = _nostrService
           .listenToEvents(kind: 1, since: _lastLoadedAt)
           .listen(
-          (event) {
-            // Check if post already exists to avoid duplicates
-            final existingPostIndex = posts.indexWhere(
-              (existingPost) => existingPost.id == event.id,
-            );
+            (event) {
+              // Check if post already exists to avoid duplicates
+              final existingPostIndex = posts.indexWhere(
+                (existingPost) => existingPost.id == event.id,
+              );
 
-            if (existingPostIndex == -1) {
-              // Add new posts to the beginning of the list
-              posts.insert(
-                0,
-                Post(
+              if (existingPostIndex == -1) {
+                // Add new posts to the beginning of the list
+                posts.insert(
+                  0,
+                  Post(
+                    id: event.id,
+                    userName: event.pubkey,
+                    userId: event.pubkey,
+                    content: event.content,
+                    createdAt: event.createdAt,
+                    updatedAt: event.createdAt,
+                  ),
+                );
+                safeNotifyListeners();
+              } else {
+                posts[existingPostIndex] = Post(
                   id: event.id,
                   userName: event.pubkey,
                   userId: event.pubkey,
                   content: event.content,
                   createdAt: event.createdAt,
                   updatedAt: event.createdAt,
-                ),
-              );
-              safeNotifyListeners();
-            } else {
-              posts[existingPostIndex] = Post(
-                id: event.id,
-                userName: event.pubkey,
-                userId: event.pubkey,
-                content: event.content,
-                createdAt: event.createdAt,
-                updatedAt: event.createdAt,
-              );
-              safeNotifyListeners();
-            }
-          },
-          onError: (error) {
-            debugPrint('Error listening to messages: $error');
-          },
-        );
+                );
+                safeNotifyListeners();
+              }
+            },
+            onError: (error) {
+              debugPrint('Error listening to messages: $error');
+            },
+          );
     } catch (e) {
       debugPrint('Failed to start listening: $e');
       rethrow;
@@ -324,7 +324,7 @@ class FeedState extends ChangeNotifier {
         this.posts.add(post);
       }
     }
-    
+
     // Sort posts by creation date (most recent first)
     this.posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
@@ -353,7 +353,7 @@ class FeedState extends ChangeNotifier {
   Future<void> reconnect({bool? useTor}) async {
     try {
       _isReconnecting = true;
-      
+
       // Update Tor setting
       if (useTor != null) {
         _useTor = useTor;
@@ -380,14 +380,14 @@ class FeedState extends ChangeNotifier {
 
       // Wait for connection to complete
       final completer = Completer<void>();
-      
+
       // Reconnect
       try {
         await _nostrService.connect((isConnected) async {
           this.isConnected = isConnected;
           _updateConnectionStatus();
           safeNotifyListeners();
-          
+
           if (isConnected && !completer.isCompleted) {
             completer.complete();
           } else if (!isConnected && !completer.isCompleted) {
@@ -401,16 +401,15 @@ class FeedState extends ChangeNotifier {
         }
         rethrow;
       }
-      
+
       // Wait for connection to be established with timeout
       await completer.future.timeout(const Duration(seconds: 5));
-      
+
       // Start listening and load posts after connection is established
       if (isConnected) {
         _lastLoadedAt = DateTime.now();
         await startListening();
       }
-      
     } catch (e) {
       debugPrint('Error reconnecting: $e');
       _updateConnectionStatus();
@@ -483,5 +482,4 @@ class FeedState extends ChangeNotifier {
       }
     });
   }
-
 }

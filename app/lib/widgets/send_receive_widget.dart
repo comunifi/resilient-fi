@@ -1,17 +1,20 @@
+import 'package:app/state/profile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flywind/flywind.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../design/button.dart';
 import '../design/card.dart';
-import '../utils/address.dart';
 
 class SendReceiveWidget extends StatefulWidget {
   final Function() onPost;
+  final Function() onSendBack;
 
   const SendReceiveWidget({
-    super.key, 
+    super.key,
     required this.onPost,
+    required this.onSendBack,
   });
 
   @override
@@ -23,15 +26,23 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
   final TextEditingController _amountController = TextEditingController();
   String _mode = 'none'; // 'send', 'receive', or 'none'
 
+  late ProfileState _profileState;
+
   @override
   void initState() {
     super.initState();
+
+    _profileState = context.read<ProfileState>();
   }
 
   @override
   void dispose() {
     _amountController.dispose();
     super.dispose();
+  }
+
+  void handleTextInput(String text) {
+    _profileState.searchFromProfile(text);
   }
 
   @override
@@ -68,24 +79,32 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
             // First row: Recipient dropdown
             FlyBox(
               children: [
-                FlyText(
-                  isSend ? 'to' : 'from',
-                ).text('sm').color('gray600'),
-                FlyButton(
-                  onTap: () => _showRecipientSelection(transaction),
-                  variant: ButtonVariant.outlined,
-                  buttonColor: ButtonColor.secondary,
-                  child: FlyBox(
-                    children: [
-                      FlyText(
-                        AddressUtils.truncateAddress(transaction.recipient),
-                      ).text('sm').weight('medium').color('gray900'),
-                      FlyIcon(
-                        LucideIcons.chevronDown,
-                      ).color('gray600').w('s3').h('s3'),
-                    ],
-                  ).row().items('center').gap('s1'),
-                ),
+                FlyText(isSend ? 'to' : 'from').text('sm').color('gray600'),
+                // FlyButton(
+                //   onTap: () => _showRecipientSelection(transaction),
+                //   variant: ButtonVariant.outlined,
+                //   buttonColor: ButtonColor.secondary,
+                //   child: FlyBox(
+                //     children: [
+                //       FlyText(
+                //         AddressUtils.truncateAddress(transaction.recipient),
+                //       ).text('sm').weight('medium').color('gray900'),
+                //       FlyIcon(
+                //         LucideIcons.chevronDown,
+                //       ).color('gray600').w('s3').h('s3'),
+                //     ],
+                //   ).row().items('center').gap('s1'),
+                // ),
+                FlyBox(
+                  child: CupertinoTextField(
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 14),
+                    decoration: const BoxDecoration(),
+                    onChanged: (value) {
+                      handleTextInput(value);
+                    },
+                  ),
+                ).w('s16'),
               ],
             ).row().items('center').gap('s2').justify('between'),
 
@@ -97,21 +116,28 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                   children: [
                     // Amount input
                     FlyBox(
-                      child: CupertinoTextField(
-                        controller: TextEditingController(
-                          text: transaction.amount.toString(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(fontSize: 14),
-                        decoration: const BoxDecoration(),
-                        onChanged: (value) {
-                          final amount = double.tryParse(value) ?? 0;
-                          setState(() {
-                            transaction.amount = amount;
-                          });
-                        },
-                      ),
-                    ).w('s16').h('s8').bg('white').rounded('sm').px('s2').border(1).borderColor('gray200'),
+                          child: CupertinoTextField(
+                            controller: TextEditingController(
+                              text: transaction.amount.toString(),
+                            ),
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(fontSize: 14),
+                            decoration: const BoxDecoration(),
+                            onChanged: (value) {
+                              final amount = double.tryParse(value) ?? 0;
+                              setState(() {
+                                transaction.amount = amount;
+                              });
+                            },
+                          ),
+                        )
+                        .w('s16')
+                        .h('s8')
+                        .bg('white')
+                        .rounded('sm')
+                        .px('s2')
+                        .border(1)
+                        .borderColor('gray200'),
 
                     // Currency display (non-interactive)
                     FlyBox(
@@ -170,6 +196,13 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
           size: ButtonSize.large,
           child: FlyIcon(LucideIcons.send).w('s4').h('s4'),
         ),
+        FlyButton(
+          onTap: widget.onSendBack,
+          variant: ButtonVariant.solid,
+          buttonColor: ButtonColor.primary,
+          size: ButtonSize.large,
+          child: FlyText('send back'),
+        ).row().items('center').gap('s2'),
       ],
     ).row().items('center').gap('s3').justify('between');
   }
@@ -184,7 +217,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         _transaction = TransactionEntry(
           recipient: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
           amount: 20,
-          currency: 'USDC',
+          currency: 'EURe',
         );
       }
     });
@@ -200,7 +233,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         _transaction = TransactionEntry(
           recipient: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
           amount: 20,
-          currency: 'USDC',
+          currency: 'EURe',
         );
       }
     });
@@ -215,28 +248,37 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         ).text('lg').weight('bold').color('gray900'),
         actions: [
           CupertinoActionSheetAction(
-            child: FlyText('0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6').color('purple600'),
+            child: FlyText(
+              '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+            ).color('purple600'),
             onPressed: () {
               setState(() {
-                transaction.recipient = '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6';
+                transaction.recipient =
+                    '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6';
               });
               Navigator.pop(context);
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('0x8ba1f109551bD432803012645Hac136c22C23').color('purple600'),
+            child: FlyText(
+              '0x8ba1f109551bD432803012645Hac136c22C23',
+            ).color('purple600'),
             onPressed: () {
               setState(() {
-                transaction.recipient = '0x8ba1f109551bD432803012645Hac136c22C23';
+                transaction.recipient =
+                    '0x8ba1f109551bD432803012645Hac136c22C23';
               });
               Navigator.pop(context);
             },
           ),
           CupertinoActionSheetAction(
-            child: FlyText('0x9cA855777E6bd8449c34765C7012CEe4B27F75d').color('purple600'),
+            child: FlyText(
+              '0x9cA855777E6bd8449c34765C7012CEe4B27F75d',
+            ).color('purple600'),
             onPressed: () {
               setState(() {
-                transaction.recipient = '0x9cA855777E6bd8449c34765C7012CEe4B27F75d';
+                transaction.recipient =
+                    '0x9cA855777E6bd8449c34765C7012CEe4B27F75d';
               });
               Navigator.pop(context);
             },
@@ -249,7 +291,6 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
       ),
     );
   }
-
 
   void _handlePost() {
     if (_mode == 'none') {

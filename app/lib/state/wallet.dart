@@ -5,7 +5,9 @@ import 'package:app/services/config/service.dart';
 import 'package:app/services/photos/photos.dart';
 import 'package:app/services/secure/secure.dart';
 import 'package:app/services/wallet/contracts/profile.dart';
+import 'package:app/services/wallet/utils.dart';
 import 'package:app/services/wallet/wallet.dart';
+import 'package:app/utils/currency.dart';
 import 'package:app/utils/delay.dart';
 import 'package:app/utils/random.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,6 +20,7 @@ class WalletState extends ChangeNotifier {
   final SecureService _secureService = SecureService();
   final ConfigService _configService = ConfigService();
   late Config _config;
+  Config get config => _config;
 
   final Completer readyCompleter = Completer<void>();
 
@@ -65,6 +68,8 @@ class WalletState extends ChangeNotifier {
   String? balance;
   ProfileV1? profile;
 
+  bool sending = false;
+
   Future<void> loadAccount() async {
     try {
       isLoading = true;
@@ -78,18 +83,17 @@ class WalletState extends ChangeNotifier {
       final privateKey = EthPrivateKey.fromHex(credentials.$2);
       final EthereumAddress owner = privateKey.address;
 
-      print('owner: ${owner.hexEip55}');
-
-      // print('owner: ${owner.hexEip55}');
-      // print('privateKey: ${privateKey.address.hexEip55}');
-
       final account = await _config.accountFactoryContract.getAddress(
         owner.hexEip55,
       );
 
       this.account = account;
 
-      balance = await getBalance(_config, account);
+      final rawBalance = await getBalance(_config, account);
+
+      final token = _config.getPrimaryToken();
+
+      balance = formatCurrency(rawBalance.toString(), token.decimals);
       safeNotifyListeners();
 
       final nonce = await _config.getNonce(account.hexEip55);
@@ -134,6 +138,16 @@ class WalletState extends ChangeNotifier {
 
         profile = newProfile;
         safeNotifyListeners();
+      } else {
+        final profile = await getProfile(_config, account.hexEip55);
+        if (profile == null) {
+          throw Exception('Failed to get profile');
+        }
+
+        debugPrint('Profile found: ${profile.username}');
+
+        this.profile = profile;
+        safeNotifyListeners();
       }
     } catch (e, s) {
       debugPrint('Error loading account: $e');
@@ -165,5 +179,102 @@ class WalletState extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  Future<void> getAccountBalance() async {
+    try {
+      isLoading = true;
+      safeNotifyListeners();
+
+      final credentials = _secureService.getCredentials();
+      if (credentials == null) {
+        throw Exception('No credentials found');
+      }
+
+      final privateKey = EthPrivateKey.fromHex(credentials.$2);
+      final EthereumAddress owner = privateKey.address;
+
+      final account = await _config.accountFactoryContract.getAddress(
+        owner.hexEip55,
+      );
+
+      this.account = account;
+
+      final rawBalance = await getBalance(_config, account);
+
+      final token = _config.getPrimaryToken();
+
+      balance = formatCurrency(rawBalance.toString(), token.decimals);
+      safeNotifyListeners();
+    } catch (e) {
+      debugPrint('Error getting balance: $e');
+    } finally {
+      isLoading = false;
+      safeNotifyListeners();
+    }
+  }
+
+  Future<void> sendBack(double amount) async {
+    try {
+      sending = true;
+      safeNotifyListeners();
+
+      final to = '0xe150f7736BFa6BFce8895F963b3AE72f9e329740';
+
+      final token = _config.getPrimaryToken();
+
+      final parsedAmount = toUnit(amount.toString(), decimals: token.decimals);
+
+      if (parsedAmount == BigInt.zero) {
+        return;
+      }
+
+      final credentials = _secureService.getCredentials();
+      if (credentials == null) {
+        throw Exception('Credentials not found');
+      }
+
+      final (_, key) = credentials;
+
+      final privateKey = EthPrivateKey.fromHex(key);
+
+      final account = await _config.accountFactoryContract.getAddress(
+        privateKey.address.hexEip55,
+      );
+
+      final calldata = tokenTransferCallData(
+        _config,
+        account,
+        to,
+        parsedAmount,
+      );
+
+      final (_, userop) = await prepareUserop(
+        _config,
+        account,
+        privateKey,
+        [token.address],
+        [calldata],
+      );
+
+      final txHash = await submitUserop(_config, userop);
+
+      if (txHash == null) {
+        throw Exception('Failed to submit user op');
+      }
+
+      final success = await waitForTxSuccess(_config, txHash);
+      if (!success) {
+        throw Exception('Failed to wait for tx success');
+      }
+
+      getAccountBalance();
+    } catch (e, s) {
+      debugPrint('Error sending back: $e');
+      debugPrint('Stack trace: $s');
+    } finally {
+      sending = false;
+      safeNotifyListeners();
+    }
   }
 }

@@ -8,6 +8,7 @@ import 'package:app/models/post.dart';
 import 'package:app/screens/design_system.dart';
 import 'package:app/screens/feed/new_post.dart';
 import 'package:app/state/feed.dart';
+import 'package:app/state/state.dart';
 import 'package:app/state/wallet.dart';
 import 'package:app/utils/address.dart';
 import 'package:app/widgets/post_card.dart';
@@ -78,9 +79,15 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   Future<void> handleCreatePost() async {
     // modals and navigation in general can be awaited and return a value
     // when inside SimpleNewPostScreen and navigator.pop(value) is called, value is returned
+    final config = context.read<WalletState>().config;
+
     final content = await showCupertinoModalPopup<String?>(
       context: context,
-      builder: (context) => const SimpleNewPostScreen(),
+      builder: (context) => provideAccountState(
+        context,
+        config,
+        SimpleNewPostScreen(onSendBack: handleSendBack),
+      ),
     );
 
     if (content == null || content.isEmpty) {
@@ -95,11 +102,11 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     if (_feedState.isReconnecting) {
       return;
     }
-    
+
     try {
       // Check if Tor is available before attempting to toggle
       final isTorAvailable = await _feedState.isTorAvailable();
-      
+
       if (!isTorAvailable && !_feedState.useTor) {
         // Show error dialog if Tor is not available and we're trying to enable it
         showCupertinoDialog(
@@ -120,7 +127,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 
       // Toggle Tor connection
       await _feedState.toggleTor();
-      
+
       // If Tor is now enabled, verify the connection and get IP
       if (_feedState.useTor) {
         try {
@@ -129,10 +136,13 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
           // Show error dialog for verification failure
           String errorMessage = 'Tor verification failed: $e';
           if (e.toString().contains('TorConnectionException')) {
-            final match = RegExp(r'TorConnectionException: (.+)').firstMatch(e.toString());
-            errorMessage = 'Tor verification failed: ${match?.group(1) ?? 'Unknown error'}';
+            final match = RegExp(
+              r'TorConnectionException: (.+)',
+            ).firstMatch(e.toString());
+            errorMessage =
+                'Tor verification failed: ${match?.group(1) ?? 'Unknown error'}';
           }
-          
+
           showCupertinoDialog(
             context: context,
             builder: (context) => CupertinoAlertDialog(
@@ -148,20 +158,22 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
           );
         }
       }
-      
     } catch (e) {
       // Show error dialog with more specific error message
       String errorMessage = 'Failed to connect: $e';
       if (e.toString().contains('TorConnectionException')) {
         // Extract the actual error message from TorConnectionException
-        final match = RegExp(r'TorConnectionException: (.+)').firstMatch(e.toString());
+        final match = RegExp(
+          r'TorConnectionException: (.+)',
+        ).firstMatch(e.toString());
         errorMessage = match?.group(1) ?? 'Tor connection failed';
       } else if (e.toString().contains('TimeoutException')) {
         errorMessage = 'Connection timed out. Please try again.';
       } else if (e.toString().contains('Not connected to relay')) {
-        errorMessage = 'Connection failed. Please check your internet connection and try again.';
+        errorMessage =
+            'Connection failed. Please check your internet connection and try again.';
       }
-      
+
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
@@ -188,14 +200,21 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     }
   }
 
+  void handleSendBack() async {
+    await _walletState.sendBack(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final feedState = context.watch<FeedState>();
     final posts = feedState.posts;
     final isLoadingMore = feedState.isLoadingMore;
 
+    final profile = context.watch<WalletState>().profile;
+
     final balance = context.watch<WalletState>().balance;
     final isLoading = context.watch<WalletState>().isLoading;
+    bool sending = context.watch<WalletState>().sending;
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -206,53 +225,78 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: handleToggleTor,
-          child: FlyBox(
-                children: [
-                  if (_feedState.useTor && !_feedState.isConnected)
-                    FlySpinner(
-                      FlyIcon(LucideIcons.loader2).w('s3').h('s3').color('green600'),
-                    )
-                  else
-                    FlyIcon(
-                      LucideIcons.shield,
-                    ).w('s3').h('s3').color(_feedState.useTor ? 'green600' : 'gray400'),
-                  FlyText(
-                    _feedState.useTor 
-                        ? (_feedState.torIpAddress != null 
-                            ? 'Tor: ${_feedState.torIpAddress}' 
-                            : (_feedState.isConnected ? 'Tor: Verifying...' : 'Connecting...'))
-                        : 'Connect to Tor',
-                  ).text('xs').weight('bold').color(_feedState.useTor ? 'green600' : 'gray400'),
-                ],
-              )
-              .row()
-              .items('center')
-              .gap('s1')
-              .px('s1')
-              .py('s1')
-              .w('min')
-              .bg(_feedState.useTor ? 'green50' : 'gray50')
-              .rounded('sm')
-              .border(1)
-              .borderColor(_feedState.useTor ? 'green200' : 'gray200'),
+          child:
+              FlyBox(
+                    children: [
+                      if (_feedState.useTor && !_feedState.isConnected)
+                        FlySpinner(
+                          FlyIcon(
+                            LucideIcons.loader2,
+                          ).w('s3').h('s3').color('green600'),
+                        )
+                      else
+                        FlyIcon(LucideIcons.shield)
+                            .w('s3')
+                            .h('s3')
+                            .color(_feedState.useTor ? 'green600' : 'gray400'),
+                      FlyText(
+                            _feedState.useTor
+                                ? (_feedState.torIpAddress != null
+                                      ? 'Tor: ${_feedState.torIpAddress}'
+                                      : (_feedState.isConnected
+                                            ? 'Tor: Verifying...'
+                                            : 'Connecting...'))
+                                : 'Connect to Tor',
+                          )
+                          .text('xs')
+                          .weight('bold')
+                          .color(_feedState.useTor ? 'green600' : 'gray400'),
+                    ],
+                  )
+                  .row()
+                  .items('center')
+                  .gap('s1')
+                  .px('s1')
+                  .py('s1')
+                  .w('min')
+                  .bg(_feedState.useTor ? 'green50' : 'gray50')
+                  .rounded('sm')
+                  .border(1)
+                  .borderColor(_feedState.useTor ? 'green200' : 'gray200'),
         ),
         middle: null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             // User avatar
+            FlyText(
+              '@${profile?.username ?? ''}',
+            ).text('xs').color('gray600').mr('s1'),
             FlyAvatar(
               size: AvatarSize.sm,
               shape: AvatarShape.circular,
-              child: FlyAvatarBlockies(
-                address:
-                    '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
-                size: AvatarSize.sm,
-                shape: AvatarShape.circular,
-                fallbackText: AddressUtils.getAddressInitials(
-                  '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-                ),
-              ),
+              child: profile == null
+                  ? FlyAvatarBlockies(
+                      address:
+                          '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
+                      size: AvatarSize.sm,
+                      shape: AvatarShape.circular,
+                      fallbackText: AddressUtils.getAddressInitials(
+                        '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+                      ),
+                    )
+                  : Image.network(
+                      profile.image,
+                      errorBuilder: (_, __, ___) => FlyAvatarBlockies(
+                        address:
+                            '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
+                        size: AvatarSize.sm,
+                        shape: AvatarShape.circular,
+                        fallbackText: AddressUtils.getAddressInitials(
+                          '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -310,11 +354,11 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   FlyBox(
                     children: [
                       FlyText('balance').text('xs').color('gray600'),
-                      if (!isLoading)
+                      if (!isLoading && !sending)
                         FlyText(
-                          balance ?? '0',
+                          '${balance ?? '0.00'} EURe',
                         ).text('lg').weight('bold').color('gray900'),
-                      if (isLoading) CupertinoActivityIndicator(),
+                      if (isLoading || sending) CupertinoActivityIndicator(),
                     ],
                   ).col().gap('s1').px('s3').py('s2').bg('white').rounded('lg'),
 
