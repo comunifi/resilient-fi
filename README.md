@@ -1,4 +1,4 @@
-# Comunifi Tor + EURe Request Demo
+# Comunifi - Tor + EURe Request Demo
 
 Nostr + Crypto + Tor = ❤️
 
