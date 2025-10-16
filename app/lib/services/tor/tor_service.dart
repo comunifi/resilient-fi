@@ -17,6 +17,16 @@ class TorService {
   static const String _torHost = '127.0.0.1';
   static const int _torPort = 9050;
   
+  /// Check if a host is localhost
+  bool isLocalhost(String host) {
+    return host == 'localhost' || 
+           host == '127.0.0.1' || 
+           host == '::1' ||
+           host.startsWith('192.168.') ||
+           host.startsWith('10.') ||
+           host.startsWith('172.');
+  }
+
   /// Check if Tor daemon is running on the local machine
   Future<bool> isTorRunning() async {
     if (!Platform.isMacOS) {
@@ -41,6 +51,20 @@ class TorService {
   Future<Socket> connectThroughTor(String host, int port) async {
     if (!Platform.isMacOS) {
       throw TorConnectionException('TorService: Only macOS is supported');
+    }
+    
+    // For localhost connections, connect directly without Tor
+    if (isLocalhost(host)) {
+      try {
+        final socket = await Socket.connect(
+          host,
+          port,
+          timeout: const Duration(seconds: 10),
+        );
+        return socket;
+      } catch (e) {
+        throw TorConnectionException('Failed to connect to localhost $host:$port: $e');
+      }
     }
     
     if (!await isTorRunning()) {
@@ -86,10 +110,6 @@ class TorService {
   Future<String> verifyTorConnection() async {
     if (!Platform.isMacOS) {
       throw TorConnectionException('TorService: Only macOS is supported');
-    }
-    
-    if (!await isTorRunning()) {
-      throw TorConnectionException('Tor daemon is not running');
     }
     
     HttpClient? client;
@@ -142,6 +162,17 @@ class TorService {
       throw TorConnectionException('Failed to verify Tor connection: $e');
     } finally {
       client?.close();
+    }
+  }
+
+  /// Verify localhost connection (returns local IP)
+  Future<String> verifyLocalhostConnection() async {
+    try {
+      // For localhost, we can't verify through external services
+      // Return a local identifier instead
+      return 'localhost';
+    } catch (e) {
+      throw TorConnectionException('Failed to verify localhost connection: $e');
     }
   }
 

@@ -51,25 +51,44 @@ class NostrService {
   /// Connect through Tor SOCKS proxy
   Future<void> _connectThroughTor(Function(bool) onConnected) async {
     try {
-      // Check if Tor is available first
-      if (!await _torService.isTorRunning()) {
-        throw TorConnectionException('Tor daemon is not running. Install with: brew install tor && brew services start tor');
-      }
-      
       // Parse the relay URL to extract host and port
       final uri = Uri.parse(_relayUrl);
       final host = uri.host;
       final port = uri.port;
       final isSecure = uri.scheme == 'wss';
       
-      // Create WebSocket connection through Tor SOCKS proxy
-      _channel = await _createWebSocketThroughTor(host, port, isSecure);
+      // Check if this is a localhost connection
+      if (_torService.isLocalhost(host)) {
+        // For localhost, connect directly without Tor
+        _channel = await _createWebSocketDirect(host, port, isSecure);
+      } else {
+        // For remote hosts, check if Tor is available first
+        if (!await _torService.isTorRunning()) {
+          throw TorConnectionException('Tor daemon is not running. Install with: brew install tor && brew services start tor');
+        }
+        
+        // Create WebSocket connection through Tor SOCKS proxy
+        _channel = await _createWebSocketThroughTor(host, port, isSecure);
+      }
       
       await _setupConnection(onConnected);
     } catch (e) {
       debugPrint('Failed to connect through Tor: $e');
       _isConnected = false;
       onConnected(false);
+      rethrow;
+    }
+  }
+
+  /// Create WebSocket connection directly (for localhost)
+  Future<WebSocketChannel> _createWebSocketDirect(String host, int port, bool isSecure) async {
+    try {
+      // For localhost connections, use the original URL directly
+      final webSocket = await WebSocket.connect(_relayUrl);
+      final channel = IOWebSocketChannel(webSocket);
+      return channel;
+    } catch (e) {
+      debugPrint('Failed to create direct WebSocket connection: $e');
       rethrow;
     }
   }

@@ -437,11 +437,21 @@ class FeedState extends ChangeNotifier {
   /// Verify Tor connection and get IP address
   Future<String> verifyTorConnection() async {
     try {
-      final ip = await _torService.verifyTorConnection();
-      _torIpAddress = ip;
-      _torConnectionStatus = 'Connected via Tor (IP: $ip)';
-      safeNotifyListeners();
-      return ip;
+      // Check if we're connecting to localhost
+      final uri = Uri.parse(_nostrService.relayUrl);
+      if (_torService.isLocalhost(uri.host)) {
+        final ip = await _torService.verifyLocalhostConnection();
+        _torIpAddress = ip;
+        _torConnectionStatus = 'Connected to localhost';
+        safeNotifyListeners();
+        return ip;
+      } else {
+        final ip = await _torService.verifyTorConnection();
+        _torIpAddress = ip;
+        _torConnectionStatus = 'Connected via Tor (IP: $ip)';
+        safeNotifyListeners();
+        return ip;
+      }
     } catch (e) {
       debugPrint('Tor verification failed: $e');
       _torConnectionStatus = 'Tor verification failed: $e';
@@ -454,9 +464,17 @@ class FeedState extends ChangeNotifier {
   void _verifyTorConnectionAsync() {
     Future.delayed(const Duration(seconds: 1), () async {
       try {
-        final ip = await _torService.verifyTorConnection();
-        _torIpAddress = ip;
-        _torConnectionStatus = 'Connected via Tor (IP: $ip)';
+        // Check if we're connecting to localhost
+        final uri = Uri.parse(_nostrService.relayUrl);
+        if (_torService.isLocalhost(uri.host)) {
+          final ip = await _torService.verifyLocalhostConnection();
+          _torIpAddress = ip;
+          _torConnectionStatus = 'Connected to localhost';
+        } else {
+          final ip = await _torService.verifyTorConnection();
+          _torIpAddress = ip;
+          _torConnectionStatus = 'Connected via Tor (IP: $ip)';
+        }
         safeNotifyListeners();
       } catch (e) {
         debugPrint('Tor verification failed: $e');
