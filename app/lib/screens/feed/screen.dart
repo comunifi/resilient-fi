@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:app/design/button.dart';
 import 'package:app/design/avatar.dart';
 import 'package:app/design/avatar_blockies.dart';
+import 'package:app/design/button.dart';
 import 'package:app/models/post.dart';
 import 'package:app/screens/design_system.dart';
 import 'package:app/screens/feed/new_post.dart';
 import 'package:app/state/feed.dart';
+import 'package:app/state/wallet.dart';
 import 'package:app/utils/address.dart';
 import 'package:app/widgets/post_card.dart';
 import 'package:app/widgets/transaction_card.dart';
@@ -26,6 +27,7 @@ class SocialFeedScreen extends StatefulWidget {
 
 class _SocialFeedScreenState extends State<SocialFeedScreen> {
   late FeedState _feedState;
+  late WalletState _walletState;
   late ScrollController _scrollController;
 
   @override
@@ -33,6 +35,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     super.initState();
 
     _feedState = context.read<FeedState>();
+    _walletState = context.read<WalletState>();
     _scrollController = ScrollController();
 
     // Add scroll listener for pagination
@@ -43,8 +46,12 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     });
   }
 
-  void onLoad() {
+  Future<void> onLoad() async {
     _feedState.init();
+
+    await _walletState.ready();
+
+    _walletState.loadAccount();
   }
 
   @override
@@ -86,9 +93,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     print('🎨 handleDesignSystem() called!'); // Enhanced debug output
     try {
       Navigator.of(context).push(
-        CupertinoPageRoute(
-          builder: (context) => const DesignSystemScreen(),
-        ),
+        CupertinoPageRoute(builder: (context) => const DesignSystemScreen()),
       );
       print('✅ Navigation to DesignSystemScreen initiated');
     } catch (e) {
@@ -102,32 +107,51 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     final posts = feedState.posts;
     final isLoadingMore = feedState.isLoadingMore;
 
+    final account = context.watch<WalletState>().account;
+    final balance = context.watch<WalletState>().balance;
+    final profile = context.watch<WalletState>().profile;
+    final isLoading = context.watch<WalletState>().isLoading;
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         backgroundColor: CupertinoColors.systemBackground,
         border: const Border(
-          bottom: BorderSide(
-            color: CupertinoColors.separator,
-            width: 0.5,
-          ),
+          bottom: BorderSide(color: CupertinoColors.separator, width: 0.5),
         ),
-        leading: Container(
+        leading: SizedBox(
           width: 60,
-          child: FlyBox(
-            children: [
-              FlyIcon(LucideIcons.shield).w('s3').h('s3').color('green600'),
-              FlyText('Tor').text('xs').weight('bold').color('green600'),
-            ],
-          ).row().items('center').gap('s1').px('s1').py('s1').bg('green50').rounded('sm').border(1).borderColor('green200'),
+          child:
+              FlyBox(
+                    children: [
+                      FlyIcon(
+                        LucideIcons.shield,
+                      ).w('s3').h('s3').color('green600'),
+                      FlyText(
+                        'Tor',
+                      ).text('xs').weight('bold').color('green600'),
+                    ],
+                  )
+                  .row()
+                  .items('center')
+                  .gap('s1')
+                  .px('s1')
+                  .py('s1')
+                  .bg('green50')
+                  .rounded('sm')
+                  .border(1)
+                  .borderColor('green200'),
         ),
         trailing: FlyAvatar(
           size: AvatarSize.sm,
           shape: AvatarShape.circular,
           child: FlyAvatarBlockies(
-            address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
+            address:
+                '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
             size: AvatarSize.sm,
             shape: AvatarShape.circular,
-            fallbackText: AddressUtils.getAddressInitials('0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'),
+            fallbackText: AddressUtils.getAddressInitials(
+              '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+            ),
           ),
         ),
       ),
@@ -175,10 +199,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(
-                  top: BorderSide(
-                    color: CupertinoColors.separator,
-                    width: 0.5,
-                  ),
+                  top: BorderSide(color: CupertinoColors.separator, width: 0.5),
                 ),
               ),
               child: FlyBox(
@@ -187,10 +208,14 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   FlyBox(
                     children: [
                       FlyText('balance').text('xs').color('gray600'),
-                      FlyText('45.6 USDC').text('lg').weight('bold').color('gray900'),
+                      if (!isLoading)
+                        FlyText(
+                          balance ?? '0',
+                        ).text('lg').weight('bold').color('gray900'),
+                      if (isLoading) CupertinoActivityIndicator(),
                     ],
                   ).col().gap('s1').px('s3').py('s2').bg('white').rounded('lg'),
-                  
+
                   // Add button
                   FlyButton(
                     onTap: handleCreatePost,
@@ -220,12 +245,16 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
       transaction: post.transaction != null
           ? TransactionCard(
               senderName: post.transaction!.senderName,
-              senderAddress: post.userId, // Use the post author's address as sender address
+              senderAddress: post
+                  .userId, // Use the post author's address as sender address
               amount: post.transaction!.amount,
               timeAgo: post.transaction!.timeAgo,
               senderInitials: post.transaction!.senderInitials,
-              status: post.transaction!.timeAgo == 'Pending' ? 'Request Pending' : 
-                      post.transaction!.timeAgo == 'Complete' ? 'Request Complete' : 'Completed',
+              status: post.transaction!.timeAgo == 'Pending'
+                  ? 'Request Pending'
+                  : post.transaction!.timeAgo == 'Complete'
+                  ? 'Request Complete'
+                  : 'Completed',
               onBackTap: () {
                 // Handle back navigation
                 print('Back tapped on transaction card');
@@ -236,7 +265,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
               },
               onFulfillRequest: () {
                 // Print callback for fulfill request
-                print('Fulfill request callback triggered for ${post.transaction!.senderName}');
+                print(
+                  'Fulfill request callback triggered for ${post.transaction!.senderName}',
+                );
               },
             )
           : null,

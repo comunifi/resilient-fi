@@ -1,4 +1,6 @@
 import 'package:app/router/router.dart';
+import 'package:app/services/config/service.dart';
+import 'package:app/services/preferences/preferences.dart';
 import 'package:app/services/secure/secure.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,16 @@ void main() async {
   await dotenv.load(fileName: '.env');
 
   await SecureService().init(await SharedPreferences.getInstance());
+  await PreferencesService().init(await SharedPreferences.getInstance());
+
+  final ConfigService configService = ConfigService();
+
+  final config = await configService.getLocalConfig();
+  if (config == null) {
+    throw Exception('Community not found in local asset');
+  }
+
+  await config.initContracts();
 
   runApp(const MainApp());
 }

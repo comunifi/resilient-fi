@@ -23,6 +23,21 @@ dependencies:
   web_socket_channel: ^2.4.0
   lucide_icons: ^0.257.0
   blockies: ^0.1.2
+  toastification: ^3.0.3
+  http: ^1.5.0
+  collection: ^1.19.1
+  archive: ^4.0.7
+  smartcontracts:
+    git:
+      url: https://github.com/citizenwallet/smartcontracts.git
+      ref: v0.0.106
+  contractforge:
+    git:
+      url: https://github.com/citizenwallet/contractforge.git
+      ref: v0.0.19
+  universal_io: ^2.2.2
+  file_picker: ^10.3.3
+  image: ^4.5.4
 
 dev_dependencies:
   flutter_test:
@@ -37,3 +52,23 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/config/communities.json
+    - assets/words/nouns.json
+    - assets/icons/profile.png
+    - packages/smartcontracts/contracts/accounts/Account.abi.json
+    - packages/smartcontracts/contracts/accounts/AccountFactory.abi.json
+    - packages/smartcontracts/contracts/external/DERC20.abi.json
+    - packages/smartcontracts/contracts/accounts/Account.abi.json
+    - packages/smartcontracts/contracts/external/SimpleAccountFactory.abi.json
+    - packages/smartcontracts/contracts/accounts/TokenEntryPoint.abi.json
+    - packages/smartcontracts/contracts/standards/IAccessControlUpgradeable.abi.json
+    - packages/smartcontracts/contracts/apps/SimpleFaucet.abi.json
+    - packages/smartcontracts/contracts/standards/ERC20.abi.json
+    - packages/smartcontracts/contracts/standards/ERC1155.abi.json
+    - packages/smartcontracts/contracts/apps/Profile.abi.json
+    - packages/smartcontracts/contracts/external/CardFactory.abi.json
+    - packages/contractforge/abi/CardManagerModule.json
+    - packages/contractforge/abi/Safe.json
+    - packages/contractforge/abi/CommunityModule.json
+    - packages/contractforge/abi/TwoFAFactory.json
+    - packages/contractforge/abi/SessionManagerModule.json
