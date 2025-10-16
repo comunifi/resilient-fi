@@ -7,7 +7,10 @@ import (
 	"log"
 
 	"github.com/comunifi/resilient-fi/relay/internal/config"
+	"github.com/comunifi/resilient-fi/relay/internal/nostr"
+	"github.com/comunifi/resilient-fi/relay/pkg/common"
 	"github.com/fiatjaf/eventstore/postgresql"
+	"github.com/fiatjaf/khatru"
 )
 
 func main() {
@@ -47,5 +50,27 @@ func main() {
 		log.Fatal(err)
 	}
 	defer ndb.Close()
+	////////////////////
+
+	////////////////////
+	// pubkey
+	pubkey, err := common.PrivateKeyToPublicKey(conf.RelayPrivateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	////////////////////
+
+	////////////////////
+	// nostr
+	relay := khatru.NewRelay()
+
+	relay.Info.Name = conf.RelayInfoName
+	relay.Info.PubKey = pubkey
+	relay.Info.Description = conf.RelayInfoDescription
+	relay.Info.Icon = conf.RelayInfoIcon
+
+	// nostr-service
+	n := nostr.NewNostr(conf.RelayPrivateKey, &ndb, relay, conf.RelayUrl)
 	////////////////////
 }
