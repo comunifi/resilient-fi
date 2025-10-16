@@ -98,8 +98,13 @@ Put the ip address you get from ngrok as RELAY_URL.
 
 ## Potential Impact
 
+Making global digital coordination as easy as starting a whatsapp group. 
 
+This will enable people/projects/causes to collaborate on in way where they are not trapped in the communication tool. Unlike whatsapp/signal/telegram, the Nostr protocol is open and standardized, allowing people to move data and build their own clients.
 
+Making send stablecoins as easy to use as the request flow we demoed will make crypto much easier to integrate into all sorts of smart flows.
+
+The Tor layer is icing on the cake and enables more robust privacy.
 
 
 
