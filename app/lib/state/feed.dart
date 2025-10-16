@@ -2,29 +2,44 @@ import 'dart:async';
 
 import 'package:app/models/nostr_event.dart';
 import 'package:app/models/post.dart';
-import 'package:app/models/transaction.dart';
 import 'package:app/services/nostr/nostr.dart';
+import 'package:app/services/tor/tor_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FeedState extends ChangeNotifier {
   // instantiate services here - local storage, db, api, etc.
-  final NostrService _nostrService;
+  NostrService _nostrService;
+  final TorService _torService = TorService();
 
   // constructor here - you could pass a user id to the constructor and use it to trigger all methods with that user id
   FeedState() : _nostrService = NostrService(dotenv.get('RELAY_URL'));
 
-  void init() {
-    _nostrService.connect((isConnected) async {
-      if (!this.isConnected && isConnected) {
-        _lastLoadedAt = DateTime.now();
-        await startListening();
-        loadPosts();
-      }
+  // Tor-related fields
+  bool _useTor = false;
+  String? _torConnectionStatus;
+  String? _torIpAddress;
+  bool _isReconnecting = false;
 
-      this.isConnected = isConnected;
-      safeNotifyListeners();
-    });
+  void init() {
+    if (!isConnected) {
+      _nostrService.connect((isConnected) async {
+        if (!this.isConnected && isConnected && !_isReconnecting) {
+          _lastLoadedAt = DateTime.now();
+          await startListening();
+          loadPosts();
+          
+          // If using Tor, verify connection and get IP address
+          if (_useTor) {
+            _verifyTorConnectionAsync();
+          }
+        }
+
+        this.isConnected = isConnected;
+        _updateConnectionStatus();
+        safeNotifyListeners();
+      });
+    }
   }
 
   // life cycle methods here
@@ -53,14 +68,20 @@ class FeedState extends ChangeNotifier {
 
   DateTime? _lastLoadedAt;
 
+  // Tor-related getters
+  bool get useTor => _useTor;
+  String? get torConnectionStatus => _torConnectionStatus;
+  bool get isReconnecting => _isReconnecting;
+
   Future<void> startListening() async {
     if (_messageSubscription != null) {
       await _messageSubscription!.cancel();
     }
 
-    _messageSubscription = _nostrService
-        .listenToEvents(kind: 1, since: _lastLoadedAt)
-        .listen(
+    try {
+      _messageSubscription = _nostrService
+          .listenToEvents(kind: 1, since: _lastLoadedAt)
+          .listen(
           (event) {
             // Check if post already exists to avoid duplicates
             final existingPostIndex = posts.indexWhere(
@@ -97,6 +118,10 @@ class FeedState extends ChangeNotifier {
             debugPrint('Error listening to messages: $error');
           },
         );
+    } catch (e) {
+      debugPrint('Failed to start listening: $e');
+      rethrow;
+    }
   }
 
   Future<void> loadPosts() async {
@@ -200,7 +225,8 @@ class FeedState extends ChangeNotifier {
       safeNotifyListeners();
 
       // Start listening for new messages after loading historical posts
-      if (isConnected) {
+      // Only start listening if we're not in the middle of a reconnection
+      if (isConnected && !_isReconnecting) {
         startListening();
       }
     } catch (e) {
@@ -303,36 +329,141 @@ class FeedState extends ChangeNotifier {
     this.posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
-  /// Add mock posts with transactions for testing the new TransactionCard design
-  void _addMockPostsWithTransactions() {
-    final now = DateTime.now();
-    
-    // Mock post 1: Request Pending with action button
-    final pendingRequestPost = Post(
-      id: 'mock_pending_${now.millisecondsSinceEpoch}',
-      userName: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-      userId: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-      content: 'Requesting \$299 for software license refund. Community admin please review.',
-      userInitials: '0x74',
-      likeCount: 5,
-      dislikeCount: 0,
-      commentCount: 3,
-      transaction: Transaction(
-        senderName: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-        amount: '299.00 USDC',
-        timeAgo: 'Pending',
-        senderInitials: '0x74',
-      ),
-      createdAt: now.subtract(const Duration(minutes: 30)),
-      updatedAt: now.subtract(const Duration(minutes: 30)),
-    );
-
-    // Add mock posts to the list
-    posts.addAll([
-      pendingRequestPost,
-    ]);
-    
-    // Sort posts by creation date (most recent first)
-    posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  /// Update connection status based on current state
+  void _updateConnectionStatus() {
+    if (isConnected) {
+      _torConnectionStatus = _useTor ? 'Connected via Tor' : 'Connected';
+    } else {
+      _torConnectionStatus = _useTor ? 'Tor connection failed' : 'Disconnected';
+    }
   }
+
+  /// Toggle Tor connection
+  Future<void> toggleTor() async {
+    if (_useTor) {
+      // Switch from Tor to regular connection
+      await reconnect(useTor: false);
+    } else {
+      // Switch from regular to Tor connection
+      await reconnect(useTor: true);
+    }
+  }
+
+  /// Reconnect with new settings
+  Future<void> reconnect({bool? useTor}) async {
+    try {
+      _isReconnecting = true;
+      
+      // Update Tor setting
+      if (useTor != null) {
+        _useTor = useTor;
+      }
+
+      // Cancel existing subscription before disconnecting
+      if (_messageSubscription != null) {
+        try {
+          if (_nostrService.isConnected) {
+            await _messageSubscription!.cancel();
+          }
+        } catch (e) {
+          debugPrint('Error cancelling subscription: $e');
+        }
+        _messageSubscription = null;
+      }
+
+      // Disconnect current connection
+      await _nostrService.disconnect();
+
+      // Create new service with updated settings
+      final relayUrl = dotenv.get('RELAY_URL');
+      _nostrService = NostrService(relayUrl, useTor: _useTor);
+
+      // Wait for connection to complete
+      final completer = Completer<void>();
+      
+      // Reconnect
+      try {
+        await _nostrService.connect((isConnected) async {
+          this.isConnected = isConnected;
+          _updateConnectionStatus();
+          safeNotifyListeners();
+          
+          if (isConnected && !completer.isCompleted) {
+            completer.complete();
+          } else if (!isConnected && !completer.isCompleted) {
+            completer.completeError(Exception('Connection failed'));
+          }
+        });
+      } catch (e) {
+        debugPrint('Exception during connect(): $e');
+        if (!completer.isCompleted) {
+          completer.completeError(e);
+        }
+        rethrow;
+      }
+      
+      // Wait for connection to be established with timeout
+      await completer.future.timeout(const Duration(seconds: 5));
+      
+      // Start listening and load posts after connection is established
+      if (isConnected) {
+        _lastLoadedAt = DateTime.now();
+        await startListening();
+      }
+      
+    } catch (e) {
+      debugPrint('Error reconnecting: $e');
+      _updateConnectionStatus();
+      safeNotifyListeners();
+      rethrow;
+    } finally {
+      _isReconnecting = false;
+    }
+  }
+
+  /// Check if Tor is available
+  Future<bool> isTorAvailable() async {
+    return await _torService.isTorRunning();
+  }
+
+  /// Get Tor error message
+  String getTorErrorMessage() {
+    return _torService.getTorErrorMessage();
+  }
+
+  /// Get the current Tor IP address
+  String? get torIpAddress => _torIpAddress;
+
+  /// Verify Tor connection and get IP address
+  Future<String> verifyTorConnection() async {
+    try {
+      final ip = await _torService.verifyTorConnection();
+      _torIpAddress = ip;
+      _torConnectionStatus = 'Connected via Tor (IP: $ip)';
+      safeNotifyListeners();
+      return ip;
+    } catch (e) {
+      debugPrint('Tor verification failed: $e');
+      _torConnectionStatus = 'Tor verification failed: $e';
+      safeNotifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Verify Tor connection asynchronously (non-blocking)
+  void _verifyTorConnectionAsync() {
+    Future.delayed(const Duration(seconds: 1), () async {
+      try {
+        final ip = await _torService.verifyTorConnection();
+        _torIpAddress = ip;
+        _torConnectionStatus = 'Connected via Tor (IP: $ip)';
+        safeNotifyListeners();
+      } catch (e) {
+        debugPrint('Tor verification failed: $e');
+        // Keep showing "Tor: Verifying..." - don't show error to user
+        // The connection is still working, just IP verification failed
+      }
+    });
+  }
+
 }

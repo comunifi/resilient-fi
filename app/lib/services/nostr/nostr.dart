@@ -1,55 +1,45 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:app/models/nostr_event.dart';
 import 'package:app/services/secure/secure.dart';
+import 'package:app/services/tor/tor_service.dart';
 import 'package:dart_nostr/dart_nostr.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:socks5_proxy/socks.dart';
 
 /// WebSocket-based Nostr service implementation
 class NostrService {
   final SecureService _secureService = SecureService();
+  final TorService _torService = TorService();
 
   final String _relayUrl;
+  final bool _useTor;
   WebSocketChannel? _channel;
   bool _isConnected = false;
   final Map<String, StreamController<NostrEventModel>> _subscriptions = {};
   final Map<String, VoidCallback> _eoseCompleters = {};
   final Random _random = Random();
 
-  NostrService(this._relayUrl);
+  NostrService(this._relayUrl, {bool useTor = false}) : _useTor = useTor;
 
   /// Connect to the Nostr relay
   Future<void> connect(Function(bool) onConnected) async {
     if (_isConnected) {
-      debugPrint('Already connected to relay');
       return;
     }
 
     try {
-      debugPrint('Connecting to relay: $_relayUrl');
-      _channel = WebSocketChannel.connect(Uri.parse(_relayUrl));
-
-      // Listen for incoming messages
-      _channel!.stream.listen(
-        _handleMessage,
-        onError: (error) {
-          debugPrint('WebSocket error: $error');
-          _isConnected = false;
-          onConnected(false);
-        },
-        onDone: () {
-          debugPrint('WebSocket connection closed');
-          _isConnected = false;
-          onConnected(false);
-        },
-      );
-
-      _isConnected = true;
-      debugPrint('Connected to relay successfully');
-      onConnected(true);
+      if (_useTor) {
+        await _connectThroughTor(onConnected);
+      } else {
+        _channel = WebSocketChannel.connect(Uri.parse(_relayUrl));
+        await _setupConnection(onConnected);
+      }
     } catch (e) {
       debugPrint('Failed to connect to relay: $e');
       _isConnected = false;
@@ -58,8 +48,99 @@ class NostrService {
     }
   }
 
+  /// Connect through Tor SOCKS proxy
+  Future<void> _connectThroughTor(Function(bool) onConnected) async {
+    try {
+      // Check if Tor is available first
+      if (!await _torService.isTorRunning()) {
+        throw TorConnectionException('Tor daemon is not running. Install with: brew install tor && brew services start tor');
+      }
+      
+      // Parse the relay URL to extract host and port
+      final uri = Uri.parse(_relayUrl);
+      final host = uri.host;
+      final port = uri.port;
+      final isSecure = uri.scheme == 'wss';
+      
+      // Create WebSocket connection through Tor SOCKS proxy
+      _channel = await _createWebSocketThroughTor(host, port, isSecure);
+      
+      await _setupConnection(onConnected);
+    } catch (e) {
+      debugPrint('Failed to connect through Tor: $e');
+      _isConnected = false;
+      onConnected(false);
+      rethrow;
+    }
+  }
+
+  /// Create WebSocket connection through Tor SOCKS proxy
+  Future<WebSocketChannel> _createWebSocketThroughTor(String host, int port, bool isSecure) async {
+    try {
+      final httpClient = _createTorHttpClient();
+      
+      // Ensure the URL has an explicit port for SOCKS5 proxy compatibility
+      String webSocketUrl = _relayUrl;
+      if (isSecure && !webSocketUrl.contains(':443')) {
+        webSocketUrl = webSocketUrl.replaceAll(':443', '').replaceAll('wss://', 'wss://') + ':443';
+      } else if (!isSecure && !webSocketUrl.contains(':80')) {
+        webSocketUrl = webSocketUrl.replaceAll(':80', '').replaceAll('ws://', 'ws://') + ':80';
+      }
+      
+      // Use the SOCKS5 proxy package to create a WebSocket connection
+      final webSocket = await WebSocket.connect(
+        webSocketUrl,
+        customClient: httpClient,
+      );
+      
+      final channel = IOWebSocketChannel(webSocket);
+      return channel;
+    } catch (e) {
+      debugPrint('Failed to create WebSocket through Tor: $e');
+      rethrow;
+    }
+  }
+  
+  /// Create HttpClient configured to use Tor SOCKS proxy
+  HttpClient _createTorHttpClient() {
+    final client = HttpClient();
+    SocksTCPClient.assignToHttpClient(client, [
+      ProxySettings(InternetAddress('127.0.0.1'), 9050),
+    ]);
+    return client;
+  }
+
+  /// Setup WebSocket connection listeners
+  Future<void> _setupConnection(Function(bool) onConnected) async {
+    // Listen for incoming messages
+    _channel!.stream.listen(
+      _handleMessage,
+      onError: (error) {
+        debugPrint('WebSocket error: $error');
+        _isConnected = false;
+        onConnected(false);
+      },
+      onDone: () {
+        debugPrint('WebSocket connection closed');
+        _isConnected = false;
+        onConnected(false);
+      },
+    );
+
+    // Add a small delay to ensure WebSocket is fully connected
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    _isConnected = true;
+    debugPrint('Connected to relay${_useTor ? ' via Tor' : ''}');
+    onConnected(true);
+  }
+
   /// Disconnect from the relay
   Future<void> disconnect() async {
+    if (_isConnected) {
+      debugPrint('Disconnected from relay${_useTor ? ' (Tor)' : ''}');
+    }
+    
     if (_channel != null) {
       await _channel!.sink.close();
       _channel = null;
@@ -74,8 +155,6 @@ class NostrService {
 
     // Clear EOSE completers
     _eoseCompleters.clear();
-
-    debugPrint('Disconnected from relay');
   }
 
   /// Handle incoming WebSocket messages
@@ -118,12 +197,10 @@ class NostrService {
       // Emit event to the appropriate subscription
       final controller = _subscriptions[subscriptionId];
       if (controller != null && !controller.isClosed) {
-        debugPrint('adding event to controller: $subscriptionId');
         controller.add(event);
       }
-    } catch (e, s) {
+    } catch (e) {
       debugPrint('Error parsing event: $e');
-      debugPrint('Stack trace: $s');
     }
   }
 
@@ -131,7 +208,6 @@ class NostrService {
   void _handleEoseMessage(List<dynamic> data) {
     if (data.length < 2) return;
     final String subscriptionId = data[1];
-    debugPrint('EOSE received for subscription: $subscriptionId');
 
     // Call the EOSE completer if it exists
     final completer = _eoseCompleters[subscriptionId];
@@ -169,7 +245,6 @@ class NostrService {
 
     final String jsonMessage = jsonEncode(message);
     _channel!.sink.add(jsonMessage);
-    debugPrint('Sent message: $jsonMessage');
   }
 
   /// Listen to events of a specific kind
@@ -188,8 +263,6 @@ class NostrService {
     final String subscriptionId = _generateSubscriptionId();
     final StreamController<NostrEventModel> controller =
         StreamController<NostrEventModel>();
-
-    debugPrint('listening to events: $subscriptionId');
 
     // Store the controller for this subscription
     _subscriptions[subscriptionId] = controller;
@@ -227,7 +300,6 @@ class NostrService {
 
     // Clean up when the stream is cancelled
     controller.onCancel = () {
-      debugPrint('onCancel: $subscriptionId');
       _unsubscribe(subscriptionId);
     };
 
@@ -267,7 +339,6 @@ class NostrService {
         events.add(event);
       },
       onDone: () {
-        debugPrint('stream listener done for: $subscriptionId');
         // If EOSE was received and stream is done, complete the future
         if (eoseReceived && !completer.isCompleted) {
           completer.complete(events);
@@ -312,7 +383,6 @@ class NostrService {
 
     // Set up EOSE handling
     _eoseCompleters[subscriptionId] = () {
-      debugPrint('eose completer: $subscriptionId');
       eoseReceived = true;
 
       // Close the controller to trigger onDone
@@ -387,6 +457,9 @@ class NostrService {
 
   /// Get the relay URL
   String get relayUrl => _relayUrl;
+
+  /// Get whether Tor is being used
+  bool get useTor => _useTor;
 
   /// Get active subscription count
   int get activeSubscriptions => _subscriptions.length;

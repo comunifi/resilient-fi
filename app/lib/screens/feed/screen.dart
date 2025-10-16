@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/design/avatar.dart';
 import 'package:app/design/avatar_blockies.dart';
 import 'package:app/design/button.dart';
+import 'package:app/design/spinner.dart';
 import 'package:app/models/post.dart';
 import 'package:app/screens/design_system.dart';
 import 'package:app/screens/feed/new_post.dart';
@@ -89,15 +90,101 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     await _feedState.createPost(content);
   }
 
+  Future<void> handleToggleTor() async {
+    // Prevent multiple rapid toggles
+    if (_feedState.isReconnecting) {
+      return;
+    }
+    
+    try {
+      // Check if Tor is available before attempting to toggle
+      final isTorAvailable = await _feedState.isTorAvailable();
+      
+      if (!isTorAvailable && !_feedState.useTor) {
+        // Show error dialog if Tor is not available and we're trying to enable it
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Tor Not Available'),
+            content: Text(_feedState.getTorErrorMessage()),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      // Toggle Tor connection
+      await _feedState.toggleTor();
+      
+      // If Tor is now enabled, verify the connection and get IP
+      if (_feedState.useTor) {
+        try {
+          await _feedState.verifyTorConnection();
+        } catch (e) {
+          // Show error dialog for verification failure
+          String errorMessage = 'Tor verification failed: $e';
+          if (e.toString().contains('TorConnectionException')) {
+            final match = RegExp(r'TorConnectionException: (.+)').firstMatch(e.toString());
+            errorMessage = 'Tor verification failed: ${match?.group(1) ?? 'Unknown error'}';
+          }
+          
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('Tor Verification Failed'),
+              content: Text(errorMessage),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+      
+    } catch (e) {
+      // Show error dialog with more specific error message
+      String errorMessage = 'Failed to connect: $e';
+      if (e.toString().contains('TorConnectionException')) {
+        // Extract the actual error message from TorConnectionException
+        final match = RegExp(r'TorConnectionException: (.+)').firstMatch(e.toString());
+        errorMessage = match?.group(1) ?? 'Tor connection failed';
+      } else if (e.toString().contains('TimeoutException')) {
+        errorMessage = 'Connection timed out. Please try again.';
+      } else if (e.toString().contains('Not connected to relay')) {
+        errorMessage = 'Connection failed. Please check your internet connection and try again.';
+      }
+      
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Connection Error'),
+          content: Text(errorMessage),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   void handleDesignSystem() {
-    print('🎨 handleDesignSystem() called!'); // Enhanced debug output
     try {
       Navigator.of(context).push(
         CupertinoPageRoute(builder: (context) => const DesignSystemScreen()),
       );
-      print('✅ Navigation to DesignSystemScreen initiated');
     } catch (e) {
-      print('❌ Error navigating to DesignSystemScreen: $e');
+      debugPrint('Error navigating to DesignSystemScreen: $e');
     }
   }
 
@@ -107,9 +194,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     final posts = feedState.posts;
     final isLoadingMore = feedState.isLoadingMore;
 
-    final account = context.watch<WalletState>().account;
     final balance = context.watch<WalletState>().balance;
-    final profile = context.watch<WalletState>().profile;
     final isLoading = context.watch<WalletState>().isLoading;
 
     return CupertinoPageScaffold(
@@ -118,41 +203,58 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
         border: const Border(
           bottom: BorderSide(color: CupertinoColors.separator, width: 0.5),
         ),
-        leading: SizedBox(
-          width: 60,
-          child:
-              FlyBox(
-                    children: [
-                      FlyIcon(
-                        LucideIcons.shield,
-                      ).w('s3').h('s3').color('green600'),
-                      FlyText(
-                        'Tor',
-                      ).text('xs').weight('bold').color('green600'),
-                    ],
-                  )
-                  .row()
-                  .items('center')
-                  .gap('s1')
-                  .px('s1')
-                  .py('s1')
-                  .bg('green50')
-                  .rounded('sm')
-                  .border(1)
-                  .borderColor('green200'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: handleToggleTor,
+          child: FlyBox(
+                children: [
+                  if (_feedState.useTor && !_feedState.isConnected)
+                    FlySpinner(
+                      FlyIcon(LucideIcons.loader2).w('s3').h('s3').color('green600'),
+                    )
+                  else
+                    FlyIcon(
+                      LucideIcons.shield,
+                    ).w('s3').h('s3').color(_feedState.useTor ? 'green600' : 'gray400'),
+                  FlyText(
+                    _feedState.useTor 
+                        ? (_feedState.torIpAddress != null 
+                            ? 'Tor: ${_feedState.torIpAddress}' 
+                            : (_feedState.isConnected ? 'Tor: Verifying...' : 'Connecting...'))
+                        : 'Connect to Tor',
+                  ).text('xs').weight('bold').color(_feedState.useTor ? 'green600' : 'gray400'),
+                ],
+              )
+              .row()
+              .items('center')
+              .gap('s1')
+              .px('s1')
+              .py('s1')
+              .w('min')
+              .bg(_feedState.useTor ? 'green50' : 'gray50')
+              .rounded('sm')
+              .border(1)
+              .borderColor(_feedState.useTor ? 'green200' : 'gray200'),
         ),
-        trailing: FlyAvatar(
-          size: AvatarSize.sm,
-          shape: AvatarShape.circular,
-          child: FlyAvatarBlockies(
-            address:
-                '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
-            size: AvatarSize.sm,
-            shape: AvatarShape.circular,
-            fallbackText: AddressUtils.getAddressInitials(
-              '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+        middle: null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // User avatar
+            FlyAvatar(
+              size: AvatarSize.sm,
+              shape: AvatarShape.circular,
+              child: FlyAvatarBlockies(
+                address:
+                    '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
+                size: AvatarSize.sm,
+                shape: AvatarShape.circular,
+                fallbackText: AddressUtils.getAddressInitials(
+                  '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
       child: SafeArea(
@@ -257,17 +359,12 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   : 'Completed',
               onBackTap: () {
                 // Handle back navigation
-                print('Back tapped on transaction card');
               },
               onDeleteTap: () {
                 // Handle delete action
-                print('Delete tapped on transaction card');
               },
               onFulfillRequest: () {
-                // Print callback for fulfill request
-                print(
-                  'Fulfill request callback triggered for ${post.transaction!.senderName}',
-                );
+                // Handle fulfill request
               },
             )
           : null,
