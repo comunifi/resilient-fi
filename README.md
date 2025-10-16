@@ -1,6 +1,6 @@
 # Comunifi Tor + EURe Request Demo
 
-Nostr + Crypto = ❤️
+Nostr + Crypto + Tor = ❤️
 
 ## Social Layer - Nostr
 
