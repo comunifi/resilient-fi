@@ -5,8 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/comunifi/resilient-fi/relay/internal/config"
+	"github.com/comunifi/resilient-fi/relay/internal/hooks"
 	"github.com/comunifi/resilient-fi/relay/internal/nostr"
 	"github.com/comunifi/resilient-fi/relay/pkg/common"
 	"github.com/fiatjaf/eventstore/postgresql"
@@ -73,4 +75,31 @@ func main() {
 	// nostr-service
 	n := nostr.NewNostr(conf.RelayPrivateKey, &ndb, relay, conf.RelayUrl)
 	////////////////////
+
+	////////////////////
+	// main error channel
+	quitAck := make(chan error)
+	defer close(quitAck)
+	////////////////////
+
+	////////////////////
+	// nostr
+	println("NewRouter there are", len(relay.StoreEvent), "store events")
+	r := hooks.NewRouter(n, &ndb)
+	relay = r.AddHooks(relay)
+	println("AddHooks there are", len(relay.StoreEvent), "store events")
+
+	go func() {
+		log.Default().Println("relay running on port: 3334")
+		quitAck <- http.ListenAndServe(":3334", relay)
+	}()
+	////////////////////
+
+	for err := range quitAck {
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	log.Default().Println("relay stopped")
 }
