@@ -19,6 +19,18 @@ services:
     restart: on-failure
     healthcheck:
       test: "exit 0"
+  tor:
+    image: dockurr/tor
+    container_name: tor
+    ports:
+      - 9050:9050
+      - 9051:9051
+    volumes:
+      - ./config:/etc/tor
+      - ./data:/var/lib/tor
+    restart: always
+    healthcheck:
+      test: "exit 0"
   relay:
     container_name: relay
     build:
