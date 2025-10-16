@@ -46,7 +46,3 @@ app.*.map.json
 
 
 .env
-
-__debug_bin*
-relay/.tor/
-relay/data/
