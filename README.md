@@ -10,7 +10,7 @@ They also often need to allocate/distribute resources. Stablecoins make this ver
 
 ## Solution
 
-We’ve built a social coordination tool that combines a decentralized data network (Nostr) with crypto — creating a foundation for community finance, where communication, coordination, and funding all live in one decentralized ecosystem.
+We’ve built a social coordination tool that combines a decentralized data network (Nostr) with crypto — creating a foundation for community finance (**Comunifi!**), where communication, coordination, and funding all live in one decentralized ecosystem.
 
 Think Telegram or Reddit meets Web3, where communities can fund and reward participation through native tokenomics.
 
