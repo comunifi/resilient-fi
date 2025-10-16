@@ -153,6 +153,11 @@ class WalletState extends ChangeNotifier {
         this.profile = profile;
         safeNotifyListeners();
       }
+
+      Timer.periodic(const Duration(seconds: 1), (timer) {
+        getAccountBalance();
+        debugPrint('Balance: $balance');
+      });
     } catch (e, s) {
       debugPrint('Error loading account: $e');
       debugPrint('Stack trace: $s');
