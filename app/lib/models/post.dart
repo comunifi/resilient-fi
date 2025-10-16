@@ -1,3 +1,4 @@
+import 'package:app/state/feed.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'transaction.dart';
@@ -16,6 +17,7 @@ class Post {
   final int dislikeCount;
   final int commentCount;
   final Transaction? transaction;
+  final TxRequest? txRequest;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -30,6 +32,7 @@ class Post {
     this.dislikeCount = 0,
     this.commentCount = 0,
     this.transaction,
+    this.txRequest,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -49,6 +52,7 @@ class Post {
     int? dislikeCount,
     int? commentCount,
     Transaction? transaction,
+    TxRequest? txRequest,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -63,6 +67,7 @@ class Post {
       dislikeCount: dislikeCount ?? this.dislikeCount,
       commentCount: commentCount ?? this.commentCount,
       transaction: transaction ?? this.transaction,
+      txRequest: txRequest ?? this.txRequest,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -82,6 +87,7 @@ class Post {
         other.dislikeCount == dislikeCount &&
         other.commentCount == commentCount &&
         other.transaction == transaction &&
+        other.txRequest == txRequest &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -99,6 +105,7 @@ class Post {
       dislikeCount,
       commentCount,
       transaction,
+      txRequest,
       createdAt,
       updatedAt,
     );

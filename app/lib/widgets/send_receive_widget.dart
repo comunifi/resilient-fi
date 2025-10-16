@@ -1,4 +1,8 @@
+import 'package:app/design/avatar.dart';
+import 'package:app/design/avatar_blockies.dart';
+import 'package:app/services/wallet/contracts/profile.dart';
 import 'package:app/state/profile.dart';
+import 'package:app/utils/address.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flywind/flywind.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -9,11 +13,13 @@ import '../design/card.dart';
 
 class SendReceiveWidget extends StatefulWidget {
   final Function() onPost;
+  final Function(String, String, double) onRequest;
   final Function() onSendBack;
 
   const SendReceiveWidget({
     super.key,
     required this.onPost,
+    required this.onRequest,
     required this.onSendBack,
   });
 
@@ -47,19 +53,32 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final fromProfile = context.watch<ProfileState>().fromProfile;
+    final loadingFromProfile = context.watch<ProfileState>().loadingFromProfile;
+
     return FlyBox(
       children: [
         // Transaction entry (only show if not 'none')
         if (_mode != 'none')
-          _buildTransactionEntry(_transaction!, _mode == 'send'),
+          _buildTransactionEntry(
+            _transaction!,
+            _mode == 'send',
+            fromProfile,
+            loadingFromProfile,
+          ),
 
         // Action buttons
-        _buildActionButtons(),
+        _buildActionButtons(fromProfile),
       ],
     ).col().gap('s3');
   }
 
-  Widget _buildTransactionEntry(TransactionEntry transaction, bool isSend) {
+  Widget _buildTransactionEntry(
+    TransactionEntry transaction,
+    bool isSend,
+    fromProfile,
+    bool loadingFromProfile,
+  ) {
     return FlyCardWithHeader(
       title: isSend ? 'Send Tokens' : 'Request Tokens',
       headerIcon: isSend ? LucideIcons.arrowUpRight : LucideIcons.arrowDownLeft,
@@ -95,16 +114,40 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
                 //     ],
                 //   ).row().items('center').gap('s1'),
                 // ),
-                FlyBox(
-                  child: CupertinoTextField(
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(fontSize: 14),
-                    decoration: const BoxDecoration(),
-                    onChanged: (value) {
-                      handleTextInput(value);
-                    },
+                if (loadingFromProfile) CupertinoActivityIndicator(),
+                Expanded(
+                  child: FlyBox(
+                    children: [
+                      CupertinoTextField(
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(fontSize: 14),
+                        onChanged: (value) {
+                          handleTextInput(value);
+                        },
+                      ),
+                    ],
                   ),
-                ).w('s16'),
+                ),
+                if (fromProfile != null)
+                  FlyBox(
+                    child: Image.network(
+                      fromProfile.image,
+                      errorBuilder: (_, __, ___) => FlyAvatarBlockies(
+                        address:
+                            '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Current user's address
+                        size: AvatarSize.sm,
+                        shape: AvatarShape.circular,
+                        fallbackText: AddressUtils.getAddressInitials(
+                          '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+                        ),
+                      ),
+                    ),
+                  ).h('s8').w('s8'),
+
+                if (fromProfile != null)
+                  FlyText(
+                    '@${fromProfile.username}',
+                  ).text('sm').weight('medium').color('gray900'),
               ],
             ).row().items('center').gap('s2').justify('between'),
 
@@ -155,7 +198,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(ProfileV1? fromProfile) {
     return FlyBox(
       children: [
         // Send button (toggles send mode)
@@ -190,7 +233,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
 
         // Post button (final action)
         FlyButton(
-          onTap: _handlePost,
+          onTap: () => _handlePost(fromProfile),
           variant: ButtonVariant.solid,
           buttonColor: ButtonColor.primary,
           size: ButtonSize.large,
@@ -239,60 +282,7 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
     });
   }
 
-  void _showRecipientSelection(TransactionEntry transaction) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: FlyText(
-          'Select Recipient',
-        ).text('lg').weight('bold').color('gray900'),
-        actions: [
-          CupertinoActionSheetAction(
-            child: FlyText(
-              '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-            ).color('purple600'),
-            onPressed: () {
-              setState(() {
-                transaction.recipient =
-                    '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6';
-              });
-              Navigator.pop(context);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: FlyText(
-              '0x8ba1f109551bD432803012645Hac136c22C23',
-            ).color('purple600'),
-            onPressed: () {
-              setState(() {
-                transaction.recipient =
-                    '0x8ba1f109551bD432803012645Hac136c22C23';
-              });
-              Navigator.pop(context);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: FlyText(
-              '0x9cA855777E6bd8449c34765C7012CEe4B27F75d',
-            ).color('purple600'),
-            onPressed: () {
-              setState(() {
-                transaction.recipient =
-                    '0x9cA855777E6bd8449c34765C7012CEe4B27F75d';
-              });
-              Navigator.pop(context);
-            },
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: FlyText('Cancel').color('red600'),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-    );
-  }
-
-  void _handlePost() {
+  void _handlePost(ProfileV1? fromProfile) {
     if (_mode == 'none') {
       // _showDialog('Error', 'Please select Send or Receive first');
       widget.onPost();
@@ -304,8 +294,14 @@ class _SendReceiveWidgetState extends State<SendReceiveWidget> {
         'Sending: ${_transaction!.amount} ${_transaction!.currency} to ${_transaction!.recipient}',
       );
     } else if (_mode == 'receive') {
-      print(
-        'Receiving: ${_transaction!.amount} ${_transaction!.currency} from ${_transaction!.recipient}',
+      if (fromProfile == null) {
+        return;
+      }
+
+      widget.onRequest(
+        fromProfile.username,
+        fromProfile.account,
+        _transaction!.amount,
       );
     }
 

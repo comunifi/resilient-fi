@@ -38,6 +38,7 @@ class ProfileState extends ChangeNotifier {
   }
 
   void searchFromProfile(String username) {
+    debugPrint('Searching for profile: $username');
     // Cancel any existing timer
     _searchDebounceTimer?.cancel();
 
@@ -48,6 +49,7 @@ class ProfileState extends ChangeNotifier {
 
     // Set a new timer with 500ms delay
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      debugPrint('Searching for profile: $username');
       _performSearch(username);
     });
   }

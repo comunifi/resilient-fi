@@ -1,3 +1,4 @@
+import 'package:app/state/feed.dart';
 import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 
@@ -25,6 +26,7 @@ class PostCard extends FlyCard {
     super.flyStyle,
     required this.userAddress,
     required this.content,
+    this.txRequest,
     this.userName,
     this.userAvatarUrl,
     this.userInitials,
@@ -42,6 +44,7 @@ class PostCard extends FlyCard {
 
   final String userAddress;
   final String content;
+  final TxRequest? txRequest;
   final String? userName;
   final String? userAvatarUrl;
   final String? userInitials;
@@ -82,8 +85,7 @@ class PostCard extends FlyCard {
         _buildContent(),
 
         // Transaction (optional)
-        if (transaction != null) 
-          FlyBox(children: [transaction!]).mt('s3'),
+        if (transaction != null) FlyBox(children: [transaction!]).mt('s3'),
       ],
     );
   }
@@ -99,22 +101,21 @@ class PostCard extends FlyCard {
             address: userAddress,
             size: AvatarSize.md,
             shape: AvatarShape.circular,
-            fallbackText: userInitials ?? AddressUtils.getAddressInitials(userAddress),
+            fallbackText:
+                userInitials ?? AddressUtils.getAddressInitials(userAddress),
           ),
         ),
 
         // User name and timestamp
         FlyBox(
           children: [
-            FlyText(AddressUtils.truncateIfAddress(userName ?? userAddress))
-                .text('base')
-                .weight('semibold')
-                .color('gray800'),
+            FlyText(
+              AddressUtils.truncateIfAddress(userName ?? userAddress),
+            ).text('base').weight('semibold').color('gray800'),
             if (createdAt != null)
               FlyText(_formatTimestamp(createdAt!)).text('xs').color('gray400'),
           ],
         ).row().items('center').gap('s4').flex(1),
-
       ],
     ).row().items('center').gap('s3').mb('s2');
   }
@@ -123,6 +124,14 @@ class PostCard extends FlyCard {
     return FlyText(content).text('sm').color('gray700').leading('relaxed');
   }
 
+  Widget _buildTxRequest() {
+    return FlyBox(
+      children: [
+        FlyText(txRequest!.address).text('sm').color('gray700'),
+        FlyText(txRequest!.amount.toString()).text('sm').color('gray700'),
+      ],
+    ).row().items('center').gap('s3').mb('s2');
+  }
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();

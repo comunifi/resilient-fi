@@ -70,6 +70,8 @@ class WalletState extends ChangeNotifier {
 
   bool sending = false;
 
+  Map<String, String> sendingRequests = {};
+
   Future<void> loadAccount() async {
     try {
       isLoading = true;
@@ -274,6 +276,74 @@ class WalletState extends ChangeNotifier {
       debugPrint('Stack trace: $s');
     } finally {
       sending = false;
+      safeNotifyListeners();
+    }
+  }
+
+  Future<void> send(String id, String to, double amount) async {
+    try {
+      debugPrint('Sending request: $id');
+      sendingRequests[id] = 'In Progress';
+      sending = true;
+      safeNotifyListeners();
+
+      final token = _config.getPrimaryToken();
+
+      final parsedAmount = toUnit(amount.toString(), decimals: token.decimals);
+
+      if (parsedAmount == BigInt.zero) {
+        return;
+      }
+
+      final credentials = _secureService.getCredentials();
+      if (credentials == null) {
+        throw Exception('Credentials not found');
+      }
+
+      final (_, key) = credentials;
+
+      final privateKey = EthPrivateKey.fromHex(key);
+
+      final account = await _config.accountFactoryContract.getAddress(
+        privateKey.address.hexEip55,
+      );
+
+      final calldata = tokenTransferCallData(
+        _config,
+        account,
+        to,
+        parsedAmount,
+      );
+
+      final (_, userop) = await prepareUserop(
+        _config,
+        account,
+        privateKey,
+        [token.address],
+        [calldata],
+      );
+
+      final txHash = await submitUserop(_config, userop);
+
+      if (txHash == null) {
+        throw Exception('Failed to submit user op');
+      }
+
+      final success = await waitForTxSuccess(_config, txHash);
+      if (!success) {
+        throw Exception('Failed to wait for tx success');
+      }
+
+      sendingRequests[id] = 'Request Complete';
+      safeNotifyListeners();
+
+      getAccountBalance();
+    } catch (e, s) {
+      debugPrint('Error sending back: $e');
+      debugPrint('Stack trace: $s');
+    } finally {
+      sending = false;
+      sendingRequests[id] = 'Request Complete';
       safeNotifyListeners();
     }
   }

@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flywind/flywind.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../design/card.dart';
-import '../design/button.dart';
 import '../design/avatar.dart';
 import '../design/avatar_blockies.dart';
+import '../design/button.dart';
+import '../design/card.dart';
 import '../utils/address.dart';
 
 class TransactionCard extends FlyCardWithHeader {
@@ -36,14 +35,14 @@ class TransactionCard extends FlyCardWithHeader {
     this.onDeleteTap,
     this.onFulfillRequest,
   }) : super(
-          title: status,
-          showBackButton: true,
-          headerActionIcon: null,
-          onBackTap: onBackTap,
-          onHeaderActionTap: null,
-          headerBackgroundColor: 'gray100',
-          cardBackgroundColor: 'white',
-        );
+         title: status,
+         showBackButton: true,
+         headerActionIcon: null,
+         onBackTap: onBackTap,
+         onHeaderActionTap: null,
+         headerBackgroundColor: 'gray100',
+         cardBackgroundColor: 'white',
+       );
 
   final String senderName;
   final String senderAddress;
@@ -78,36 +77,40 @@ class TransactionCard extends FlyCardWithHeader {
       children: [
         // Header section
         FlyBox(
-          children: [
-            // Left side: Back button (if enabled) + Icon + Title
-            FlyBox(
               children: [
-                if (showBackButton)
-                  FlyButton(
-                    onTap: onBackTap,
-                    buttonColor: ButtonColor.none,
-                    child: FlyIcon(LucideIcons.arrowDownLeft).color('gray600').w('s5').h('s5'),
-                  ),
-                FlyText(title).text('sm').weight('medium').color('gray700'),
-              ],
-            ).row().items('center').gap('s2'),
+                // Left side: Back button (if enabled) + Icon + Title
+                FlyBox(
+                  children: [
+                    if (showBackButton)
+                      FlyButton(
+                        onTap: onBackTap,
+                        buttonColor: ButtonColor.none,
+                        child: FlyIcon(
+                          LucideIcons.arrowDownLeft,
+                        ).color('gray600').w('s5').h('s5'),
+                      ),
+                    FlyText(title).text('sm').weight('medium').color('gray700'),
+                  ],
+                ).row().items('center').gap('s2'),
 
-            // Right side: Action button (if provided)
-            if (headerActionIcon != null && onHeaderActionTap != null)
-              FlyButton(
-                onTap: onHeaderActionTap,
-                buttonColor: ButtonColor.none,
-                child: FlyIcon(headerActionIcon!).color('gray600').w('s4').h('s4'),
-              ),
-          ],
-        )
-        .row()
-        .items('center')
-        .justify('between')
-        .px('s3')
-        .py('s2')
-        .bg(headerBackgroundColor)
-        .rounded('lg'),
+                // Right side: Action button (if provided)
+                if (headerActionIcon != null && onHeaderActionTap != null)
+                  FlyButton(
+                    onTap: onHeaderActionTap,
+                    buttonColor: ButtonColor.none,
+                    child: FlyIcon(
+                      headerActionIcon!,
+                    ).color('gray600').w('s4').h('s4'),
+                  ),
+              ],
+            )
+            .row()
+            .items('center')
+            .justify('between')
+            .px('s3')
+            .py('s2')
+            .bg(headerBackgroundColor)
+            .rounded('lg'),
 
         // Main content section
         FlyBox(
@@ -126,20 +129,24 @@ class TransactionCard extends FlyCardWithHeader {
                         address: senderAddress,
                         size: AvatarSize.sm,
                         shape: AvatarShape.circular,
-                        fallbackText: senderInitials ?? AddressUtils.getAddressInitials(senderAddress),
+                        fallbackText:
+                            senderInitials ??
+                            AddressUtils.getAddressInitials(senderAddress),
                       ),
                     ),
-                    
+
                     // Text labels stacked vertically
                     FlyBox(
                       children: [
                         FlyText('from').text('xs').color('gray600'),
-                        FlyText(AddressUtils.truncateIfAddress(senderName)).text('sm').weight('medium'),
+                        FlyText(
+                          AddressUtils.truncateIfAddress(senderName),
+                        ).text('sm').weight('medium'),
                       ],
                     ).col().items('start'),
                   ],
                 ).row().items('center').gap('s2'),
-                
+
                 // To section
                 FlyBox(
                   children: [
@@ -151,22 +158,28 @@ class TransactionCard extends FlyCardWithHeader {
                         address: '0x8ba1f109551bD432803012645Hac136c22C23',
                         size: AvatarSize.sm,
                         shape: AvatarShape.circular,
-                        fallbackText: AddressUtils.getAddressInitials('0x8ba1f109551bD432803012645Hac136c22C23'),
+                        fallbackText: AddressUtils.getAddressInitials(
+                          '0x8ba1f109551bD432803012645Hac136c22C23',
+                        ),
                       ),
                     ),
-                    
+
                     // Text labels stacked vertically
                     FlyBox(
                       children: [
                         FlyText('to').text('xs').color('gray600'),
-                        FlyText(AddressUtils.truncateAddress('0x8ba1f109551bD432803012645Hac136c22C23')).text('sm').weight('medium'),
+                        FlyText(
+                          AddressUtils.truncateAddress(
+                            '0x8ba1f109551bD432803012645Hac136c22C23',
+                          ),
+                        ).text('sm').weight('medium'),
                       ],
                     ).col().items('start'),
                   ],
                 ).row().items('center').gap('s2'),
               ],
             ).row().items('center').gap('s8').mb('s3'),
-            
+
             // Row 3: Amount section
             FlyBox(
               children: [
@@ -174,9 +187,9 @@ class TransactionCard extends FlyCardWithHeader {
                 FlyAvatar(
                   size: AvatarSize.sm,
                   shape: AvatarShape.circular,
-                  child: FlyIcon(LucideIcons.dollarSign).w('s4').h('s4'),
+                  child: FlyIcon(LucideIcons.euro).w('s4').h('s4'),
                 ),
-                
+
                 // Text labels stacked vertically
                 FlyBox(
                   children: [
@@ -186,15 +199,23 @@ class TransactionCard extends FlyCardWithHeader {
                 ).col().items('start'),
               ],
             ).row().items('center').gap('s2'),
-            
+
             // Action button for pending requests only
             if (status == 'Request Pending') ...[
               FlyButton(
                 onTap: () => _showFulfillConfirmation(context),
                 variant: ButtonVariant.solid,
                 buttonColor: ButtonColor.primary,
-                child: FlyText('Fulfill Request').text('sm').weight('bold').color('white'),
+                child: FlyText(
+                  'Fulfill Request',
+                ).text('sm').weight('bold').color('white'),
               ).w('auto').py('s3').rounded('md').mt('s4'),
+            ],
+            if (status == 'In Progress') ...[CupertinoActivityIndicator()],
+            if (status == 'Request Complete') ...[
+              FlyText(
+                'Request Complete',
+              ).text('sm').weight('medium').color('green600'),
             ],
           ],
         ).p('s3'),
@@ -206,12 +227,12 @@ class TransactionCard extends FlyCardWithHeader {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: FlyText('Confirm Transfer')
-            .text('lg')
-            .weight('bold')
-            .color('gray900'),
-        content: FlyText('Are you sure you want to transfer $amount to $senderName?')
-            .color('gray700'),
+        title: FlyText(
+          'Confirm Transfer',
+        ).text('lg').weight('bold').color('gray900'),
+        content: FlyText(
+          'Are you sure you want to transfer $amount to $senderName?',
+        ).color('gray700'),
         actions: [
           CupertinoDialogAction(
             child: FlyText('Cancel').color('gray600'),

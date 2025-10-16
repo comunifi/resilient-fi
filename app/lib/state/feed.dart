@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:app/models/nostr_event.dart';
 import 'package:app/models/post.dart';
@@ -73,6 +74,21 @@ class FeedState extends ChangeNotifier {
   String? get torConnectionStatus => _torConnectionStatus;
   bool get isReconnecting => _isReconnecting;
 
+  TxRequest? parseTxRequest(List<List<String>> tags) {
+    try {
+      for (var tag in tags) {
+        if (tag[0] == 'tx-request') {
+          return TxRequest.fromJson(json.decode(tag[1]));
+        }
+      }
+      return null;
+    } catch (e, s) {
+      debugPrint('Error parsing tx request: $e');
+      debugPrint('Error parsing tx request: $s');
+      return null;
+    }
+  }
+
   Future<void> startListening() async {
     if (_messageSubscription != null) {
       await _messageSubscription!.cancel();
@@ -97,6 +113,7 @@ class FeedState extends ChangeNotifier {
                     userName: event.pubkey,
                     userId: event.pubkey,
                     content: event.content,
+                    txRequest: parseTxRequest(event.tags),
                     createdAt: event.createdAt,
                     updatedAt: event.createdAt,
                   ),
@@ -108,6 +125,7 @@ class FeedState extends ChangeNotifier {
                   userName: event.pubkey,
                   userId: event.pubkey,
                   content: event.content,
+                  txRequest: parseTxRequest(event.tags),
                   createdAt: event.createdAt,
                   updatedAt: event.createdAt,
                 );
@@ -146,6 +164,7 @@ class FeedState extends ChangeNotifier {
               userName: event.pubkey,
               userId: event.pubkey,
               content: event.content,
+              txRequest: parseTxRequest(event.tags),
               createdAt: event.createdAt,
               updatedAt: event.createdAt,
             ),
@@ -206,6 +225,7 @@ class FeedState extends ChangeNotifier {
               userName: event.pubkey,
               userId: event.pubkey,
               content: event.content,
+              txRequest: parseTxRequest(event.tags),
               createdAt: event.createdAt,
               updatedAt: event.createdAt,
             ),
@@ -267,6 +287,7 @@ class FeedState extends ChangeNotifier {
                 userName: event.pubkey,
                 userId: event.pubkey,
                 content: event.content,
+                txRequest: parseTxRequest(event.tags),
                 createdAt: event.createdAt,
                 updatedAt: event.createdAt,
               ),
@@ -305,6 +326,47 @@ class FeedState extends ChangeNotifier {
       userName: event.pubkey,
       userId: event.pubkey,
       content: event.content,
+      createdAt: event.createdAt,
+      updatedAt: event.createdAt,
+    );
+
+    posts.insert(0, post);
+
+    isLoading = false;
+    safeNotifyListeners();
+  }
+
+  Future<void> createRequest(
+    String content,
+    String username,
+    String address,
+    double amount,
+  ) async {
+    isLoading = true;
+    safeNotifyListeners();
+
+    final txRequest = TxRequest(
+      username: username,
+      address: address,
+      amount: amount,
+    );
+
+    debugPrint('txRequest: ${jsonEncode(txRequest.toJson())}');
+
+    List<List<String>> tags = [
+      ['tx-request', jsonEncode(txRequest.toJson())],
+    ];
+
+    final event = await _nostrService.publishEvent(
+      NostrEventModel.fromPartialData(kind: 1, content: content, tags: tags),
+    );
+
+    final post = Post(
+      id: event.id,
+      userName: event.pubkey,
+      userId: event.pubkey,
+      content: event.content,
+      txRequest: txRequest,
       createdAt: event.createdAt,
       updatedAt: event.createdAt,
     );
@@ -481,5 +543,29 @@ class FeedState extends ChangeNotifier {
         // The connection is still working, just IP verification failed
       }
     });
+  }
+}
+
+class TxRequest {
+  String username;
+  String address;
+  double amount;
+
+  TxRequest({
+    required this.username,
+    required this.address,
+    required this.amount,
+  });
+
+  factory TxRequest.fromJson(Map<String, dynamic> json) {
+    return TxRequest(
+      username: json['username'],
+      address: json['address'],
+      amount: json['amount'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'username': username, 'address': address, 'amount': amount};
   }
 }

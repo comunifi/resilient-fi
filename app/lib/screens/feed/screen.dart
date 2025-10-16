@@ -86,7 +86,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
       builder: (context) => provideAccountState(
         context,
         config,
-        SimpleNewPostScreen(onSendBack: handleSendBack),
+        SimpleNewPostScreen(
+          onSendBack: handleSendBack,
+          onRequest: handleRequest,
+        ),
       ),
     );
 
@@ -204,6 +207,19 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     await _walletState.sendBack(1);
   }
 
+  void handleRequest(
+    String content,
+    String username,
+    String address,
+    double amount,
+  ) async {
+    await _feedState.createRequest(content, username, address, amount);
+  }
+
+  void handleSend(String id, String to, double amount) async {
+    await _walletState.send(id, to, amount);
+  }
+
   @override
   Widget build(BuildContext context) {
     final feedState = context.watch<FeedState>();
@@ -215,6 +231,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     final balance = context.watch<WalletState>().balance;
     final isLoading = context.watch<WalletState>().isLoading;
     bool sending = context.watch<WalletState>().sending;
+
+    Map<String, String> sendingRequests = context
+        .watch<WalletState>()
+        .sendingRequests;
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -318,7 +338,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                     child: FlyBox(
                       children: [
                         // Build all post cards
-                        ...posts.map((post) => _buildPostCard(post)),
+                        ...posts.map(
+                          (post) => _buildPostCard(post, sendingRequests),
+                        ),
                         // Show loading indicator at the bottom if loading more
                         if (isLoadingMore) _buildLoadingIndicator(),
                       ],
@@ -378,7 +400,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     );
   }
 
-  Widget _buildPostCard(Post post) {
+  Widget _buildPostCard(Post post, Map<String, String> sendingRequests) {
     return PostCard(
       key: Key(post.id),
       userAddress: post.userId, // Using userId as the user's public key/address
@@ -388,19 +410,23 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
       likeCount: post.likeCount,
       dislikeCount: post.dislikeCount,
       commentCount: post.commentCount,
-      transaction: post.transaction != null
+      transaction: post.txRequest != null
           ? TransactionCard(
-              senderName: post.transaction!.senderName,
+              senderName: post.txRequest!.username,
               senderAddress: post
-                  .userId, // Use the post author's address as sender address
-              amount: post.transaction!.amount,
-              timeAgo: post.transaction!.timeAgo,
-              senderInitials: post.transaction!.senderInitials,
-              status: post.transaction!.timeAgo == 'Pending'
-                  ? 'Request Pending'
-                  : post.transaction!.timeAgo == 'Complete'
-                  ? 'Request Complete'
-                  : 'Completed',
+                  .txRequest!
+                  .address, // Use the post author's address as sender address
+              amount: post.txRequest!.amount.toString(),
+              // timeAgo: post.transaction!.timeAgo,
+              // senderInitials: post.transaction!.senderInitials,
+              // status: post.transaction!.timeAgo == 'Pending'
+              //     ? 'Request Pending'
+              //     : post.transaction!.timeAgo == 'Complete'
+              //     ? 'Request Complete'
+              //     : 'Completed',
+              timeAgo: '1 hour ago',
+              senderInitials: 'hello',
+              status: sendingRequests[post.id] ?? 'Request Pending',
               onBackTap: () {
                 // Handle back navigation
               },
@@ -408,7 +434,11 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                 // Handle delete action
               },
               onFulfillRequest: () {
-                // Handle fulfill request
+                handleSend(
+                  post.id,
+                  post.txRequest!.address,
+                  post.txRequest!.amount,
+                );
               },
             )
           : null,
