@@ -8,9 +8,7 @@ import 'package:app/services/wallet/contracts/profile.dart';
 import 'package:app/services/wallet/wallet.dart';
 import 'package:app/utils/delay.dart';
 import 'package:app/utils/random.dart';
-import 'package:app/utils/uint8.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WalletState extends ChangeNotifier {
@@ -22,6 +20,8 @@ class WalletState extends ChangeNotifier {
   late Config _config;
 
   final Completer readyCompleter = Completer<void>();
+
+  bool _creatingProfile = false;
 
   // constructor here - you could pass a user id to the constructor and use it to trigger all methods with that user id
   WalletState() {
@@ -75,20 +75,17 @@ class WalletState extends ChangeNotifier {
         throw Exception('No credentials found');
       }
 
-      print(credentials.$1.length);
-      print(hexToBytes(credentials.$1).length);
-
-      final EthereumAddress owner = EthereumAddress.fromPublicKey(
-        convertStringToUint8List(credentials.$1),
-      );
       final privateKey = EthPrivateKey.fromHex(credentials.$2);
+      final EthereumAddress owner = privateKey.address;
+
+      print('owner: ${owner.hexEip55}');
+
+      // print('owner: ${owner.hexEip55}');
+      // print('privateKey: ${privateKey.address.hexEip55}');
 
       final account = await _config.accountFactoryContract.getAddress(
         owner.hexEip55,
       );
-
-      print(owner.hexEip55);
-      print(account.hexEip55);
 
       this.account = account;
 
@@ -97,7 +94,16 @@ class WalletState extends ChangeNotifier {
 
       final nonce = await _config.getNonce(account.hexEip55);
       if (nonce == BigInt.zero) {
-        await createAccount(_config, account, privateKey);
+        if (_creatingProfile) {
+          return;
+        }
+
+        _creatingProfile = true;
+
+        final created = await createAccount(_config, account, privateKey);
+        if (!created) {
+          throw Exception('Failed to create account');
+        }
 
         // set up profile
         final username = await _generateProfileUsername();
@@ -133,6 +139,7 @@ class WalletState extends ChangeNotifier {
       debugPrint('Error loading account: $e');
       debugPrint('Stack trace: $s');
     } finally {
+      _creatingProfile = false;
       isLoading = false;
       safeNotifyListeners();
     }
