@@ -89,6 +89,8 @@ class WalletState extends ChangeNotifier {
         owner.hexEip55,
       );
 
+      debugPrint('Account: ${account.hexEip55}');
+
       this.account = account;
 
       final rawBalance = await getBalance(_config, account);
