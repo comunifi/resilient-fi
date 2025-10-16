@@ -376,11 +376,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   FlyBox(
                     children: [
                       FlyText('balance').text('xs').color('gray600'),
-                      if (!isLoading && !sending)
-                        FlyText(
-                          '${balance ?? '0.00'} EURe',
-                        ).text('lg').weight('bold').color('gray900'),
-                      if (isLoading || sending) CupertinoActivityIndicator(),
+                      FlyText(
+                        '${balance ?? '0.00'} EURe',
+                      ).text('lg').weight('bold').color('gray900'),
                     ],
                   ).col().gap('s1').px('s3').py('s2').bg('white').rounded('lg'),
 
